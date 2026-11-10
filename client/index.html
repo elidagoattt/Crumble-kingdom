@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#ffc6dd">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Crumble Kingdom</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+<canvas id="kingdom"></canvas>
+
+<div id="hud">
+  <div class="res" id="res"></div>
+  <button class="goal" id="goal" hidden></button>
+</div>
+
+<div id="placing" hidden>
+  <span id="placing-name"></span>
+  <button class="btn red" id="place-no">✕ Cancel</button>
+  <button class="btn green" id="place-yes">✓ Place</button>
+</div>
+
+<nav id="nav">
+  <button data-open="build"><i>🔨</i><span>Build</span></button>
+  <button data-open="cats"><i>🍪</i><span>Sweets</span></button>
+  <button data-open="map" class="big"><i>📖</i><span>Story</span></button>
+  <button data-open="well"><i>🔥</i><span>Oven</span></button>
+  <button data-open="menu"><i>⚙️</i><span>Menu</span></button>
+</nav>
+
+<div id="sheet" class="sheet" hidden></div>
+<div id="battle" class="screen"></div>
+<div id="modal" class="modal" hidden></div>
+<div id="toasts"></div>
+<div id="rotate"><div><i>📱</i><b>Turn your phone sideways</b><span>Crumble Kingdom plays in landscape.</span></div></div>
+<div id="loading"><div><b>Crumble Kingdom</b><span>Loading…</span></div></div>
+
+<script src="js/artkit.js"></script>
+<script src="js/data.js"></script>
+<script src="js/sweets.js"></script>
+<script src="js/art.js"></script>
+<script src="js/core.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/kingdom.js"></script>
+<script src="js/battle.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

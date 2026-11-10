@@ -1,0 +1,9 @@
+{
+  "name": "Crumble Kingdom",
+  "short_name": "Crumble",
+  "start_url": ".",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#ffc6dd",
+  "theme_color": "#ffc6dd"
+}
