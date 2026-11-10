@@ -231,17 +231,32 @@ function showPulls(results) {
 }
 
 // ---------------------------------------------------------------- menu
+// Full screen: hides the browser's tabs and address bar. Browsers only allow it after a tap,
+// so we also try once on the first touch. iPhone Safari cannot do this for web pages; there the
+// fix is installing to the home screen (the manifest is already fullscreen).
+const IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const FS = {
+  on: () => !!(document.fullscreenElement || document.webkitFullscreenElement),
+  can: () => !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen),
+  standalone: () => !!(window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone),
+  enter() { const el = document.documentElement; try { const r = (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el); r?.catch?.(() => {}); } catch (e) {} },
+  exit() { try { const r = (document.exitFullscreen || document.webkitExitFullscreen)?.call(document); r?.catch?.(() => {}); } catch (e) {} },
+};
 function openMenu() {
   const S = CK.state;
   sheet('menu', `<h2>Menu</h2><div class="scroll" style="display:flex;flex-direction:column;gap:10px">
     <button class="btn ${S.settings.sound ? 'green' : ''}" data-sound>${S.settings.sound ? '🔊 Sound on' : '🔇 Sound off'}</button>
     <button class="btn ${S.settings.music !== false ? 'green' : ''}" data-music>${S.settings.music !== false ? '🎵 Music on' : '🎵 Music off'}</button>
+    ${FS.can() ? `<button class="btn ${FS.on() ? 'green' : ''}" data-full>${FS.on() ? '⛶ Leave full screen' : '⛶ Full screen'}</button>` : ''}
+    ${!FS.can() && IOS && !FS.standalone() ? `<p style="font-size:12px;font-weight:700;color:var(--brown);text-align:center;margin:0;background:#fff6fa;border-radius:12px;padding:8px">📲 For full screen on iPhone: tap Share → <b>Add to Home Screen</b>, then open Crumble Kingdom from your home screen.</p>` : ''}
     <button class="btn blue" data-help>📖 How to play</button>
     <button class="btn red" data-reset>🗑️ Start over</button>
     <p style="font-size:12px;font-weight:700;color:var(--brown);text-align:center;margin:6px 0 0">Crumble Kingdom · a game by Eli<br>Your progress is saved on this device.</p></div>`, s => {
     s.querySelector('[data-sound]').onclick = () => { S.settings.sound = !S.settings.sound; CK.changed(); openMenu(); sfx('tap'); window.CKSound.refreshMusic(); };
     s.querySelector('[data-music]').onclick = () => { S.settings.music = S.settings.music === false; CK.changed(); openMenu(); sfx('tap'); window.CKSound.refreshMusic(); };
     s.querySelector('[data-help]').onclick = help;
+    const fb = s.querySelector('[data-full]');
+    if (fb) fb.onclick = () => { FS.on() ? FS.exit() : FS.enter(); sfx('tap'); setTimeout(openMenu, 350); };
     s.querySelector('[data-reset]').onclick = () => confirmBox('Start over?', 'This deletes your kingdom, sweets and progress on this device. It cannot be undone.', 'Delete everything', () => { CK.reset(); location.reload(); });
   });
 }
@@ -267,6 +282,8 @@ function daily() {
 function open(name) { ({build: openBuild, cats: openCats, map: openMap, well: openWell, menu: openMenu, kingdom: closeSheet}[name] || closeSheet)(); }
 function init() {
   document.querySelectorAll('#nav [data-open]').forEach(b => b.onclick = () => { window.CKSound?.unlock(); sfx('tap'); open(b.dataset.open); });
+  // Try full screen on the first tap (browsers ignore it without a user gesture; Android Chrome honours it)
+  if (FS.can() && !FS.on() && !FS.standalone()) document.addEventListener('pointerdown', () => { if (!FS.on()) FS.enter(); }, {once: true});
   CK.onChange(renderHud); renderHud();
   setInterval(renderHud, 5000);
 }
