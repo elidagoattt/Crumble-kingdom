@@ -10,7 +10,7 @@ const now = () => Date.now();
 function fresh() {
   return {
     v: 1, created: now(), seen: now(),
-    res: {sugar: 300, flour: 40, butter: 0, jam: 60, gems: 150},
+    res: {sugar: 300, flour: 40, butter: 0, jam: 60, cutters: 3, tickets: 1},
     castle: 1,
     buildings: [{id: 1, type: 'castle', x: D.GRID / 2 - 1, y: D.GRID / 2 - 1, lv: 1, at: now()}],
     nextId: 2,
@@ -33,7 +33,10 @@ const changed = () => { save(); listeners.forEach(fn => { try { fn(S); } catch (
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) { const data = JSON.parse(raw); if (data && data.v === 1) S = Object.assign(fresh(), data, {res: Object.assign(fresh().res, data.res), stats: Object.assign(fresh().stats, data.stats), settings: Object.assign(fresh().settings, data.settings)}); }
+    if (raw) { const data = JSON.parse(raw); if (data && data.v === 1) S = Object.assign(fresh(), data, {res: Object.assign(fresh().res, data.res), stats: Object.assign(fresh().stats, data.stats), settings: Object.assign(fresh().settings, data.settings)});
+      // older saves: gems became Cookie Cutters, and the Oven is no longer a building
+      if (S.res.gems != null) { S.res.cutters += Math.floor(S.res.gems / 100); delete S.res.gems; }
+      S.buildings = S.buildings.filter(b => D.BUILDINGS[b.type]); }
   } catch { /* a broken or blocked save just starts a new game */ }
   if (!Object.keys(S.cats).length) { D.STARTERS.forEach((id, i) => { S.cats[id] = {lv: 1, stars: 0}; S.team[i] = id; }); }
   return S;
@@ -90,7 +93,7 @@ function upgrade(id) {
   if (b.lv >= maxLevel(b)) return {error: b.type === 'castle' ? 'The Castle is at its top level.' : 'Upgrade the Castle first.'};
   const keep = stored(b);
   if (!pay(upgradeCost(b))) return {error: 'Not enough resources.'};
-  b.lv++; if (b.type === 'castle') { S.castle = b.lv; S.res.gems += 50; }
+  b.lv++; if (b.type === 'castle') { S.castle = b.lv; S.res.cutters += 1; }
   if (D.BUILDINGS[b.type].make) b.at = now() - keep / rateOf(b) * 60000;    // keep what was already made
   changed(); return {building: b};
 }
@@ -116,27 +119,27 @@ function toggleTeam(id) {
   S.team[free] = id; changed(); return {in: true};
 }
 
-// ---- Magic Oven
-function rollOne() {
+// ---- Magic Oven (always open; `event` bakes use the EVENT block in data.js)
+function rollOne(event) {
   S.pity++; S.stats.draws++;
-  const odds = D.GACHA.odds; let r = Math.random() * 100, rarity = 'common';
-  if (S.pity >= D.GACHA.pity) rarity = Math.random() < .1 ? 'special' : 'epic';
+  const odds = event ? D.EVENT.odds : D.GACHA.odds; let r = Math.random() * 100, rarity = 'common';
+  if (S.pity >= D.GACHA.pity) rarity = Math.random() < (event ? .25 : .1) ? 'special' : 'epic';
   else if ((r -= odds.special) < 0) rarity = 'special';
   else if ((r -= odds.epic) < 0) rarity = 'epic';
   else if ((r -= odds.rare) < 0) rarity = 'rare';
   if (rarity === 'epic' || rarity === 'special') S.pity = 0;
-  const pool = Object.keys(D.CATS).filter(id => D.CATS[id].rarity === rarity);
+  let pool = Object.keys(D.CATS).filter(id => D.CATS[id].rarity === rarity);
+  if (event) { const feat = pool.filter(id => D.EVENT.featured.includes(id)); if (feat.length && Math.random() < .5) pool = feat; }
   const id = pool[Math.floor(Math.random() * pool.length)];
   const have = S.cats[id];
   if (!have) { S.cats[id] = {lv: 1, stars: 0}; return {id, rarity, isNew: true}; }
   if (have.stars < 5) { have.stars++; return {id, rarity, starUp: have.stars}; }
   const jam = D.dupeJam[rarity]; S.res.jam += jam; return {id, rarity, jam};
 }
-function draw(times) {
+function draw(times, event) {
   const cost = times === 10 ? D.GACHA.cost10 : D.GACHA.cost1;
-  if (!S.buildings.some(b => b.type === 'well')) return {error: 'Build the Magic Oven first.'};
-  if (!pay({gems: cost})) return {error: 'Not enough gems.'};
-  const results = []; for (let i = 0; i < times; i++) results.push(rollOne());
+  if (!pay(event ? {tickets: cost} : {cutters: cost})) return {error: event ? 'Not enough Event Tickets. Beat episode bosses and collect daily gifts to earn them.' : 'Not enough Cookie Cutters. Earn them with 3-star wins, goals and daily gifts.'};
+  const results = []; for (let i = 0; i < times; i++) results.push(rollOne(event));
   changed(); return {results};
 }
 
@@ -150,8 +153,9 @@ function finishStage(w, s, stars) {
   const info = D.stageInfo(w, s), first = !starsOf(w, s), best = Math.max(starsOf(w, s), stars);
   const gain = Object.assign({}, info.reward);
   if (!first) for (const k of Object.keys(gain)) gain[k] = Math.round(gain[k] * .5);
-  if (first) gain.gems = info.firstGems;
-  if (stars === 3 && starsOf(w, s) < 3) gain.gems = (gain.gems || 0) + 20;
+  if (first && info.firstCutters) gain.cutters = info.firstCutters;
+  if (first && info.firstTickets) gain.tickets = info.firstTickets;
+  if (stars === 3 && starsOf(w, s) < 3) gain.cutters = (gain.cutters || 0) + 1;   // the first 3-star win on a level pays a Cookie Cutter
   S.stars[stageKey(w, s)] = best; S.stats.wins++;
   // finishing an episode for the first time can bring a new friend along
   let friend = null; const gift = D.EPISODES[w].gift;
@@ -162,12 +166,12 @@ function finishStage(w, s, stars) {
 // ---- goals and the daily gift
 function currentGoal() { while (S.goal < D.GOALS.length && S.goalsPaid[D.GOALS[S.goal].id]) S.goal++; return D.GOALS[S.goal] || null; }
 function goalDone() { const g = currentGoal(); return !!g && g.check(S); }
-function claimGoal() { const g = currentGoal(); if (!g || !g.check(S)) return null; S.goalsPaid[g.id] = 1; S.goal++; give({gems: g.gems}); return g; }
+function claimGoal() { const g = currentGoal(); if (!g || !g.check(S)) return null; S.goalsPaid[g.id] = 1; S.goal++; give({cutters: g.cutters}); return g; }
 function dailyGift() {
   const today = new Date().toISOString().slice(0, 10); if (S.daily.day === today) return null;
   const y = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
   S.daily.streak = S.daily.day === y ? Math.min(7, S.daily.streak + 1) : 1; S.daily.day = today;
-  const gain = {gems: 20 + S.daily.streak * 10, sugar: 200 * S.daily.streak, jam: 30 * S.daily.streak};
+  const gain = {cutters: 1, tickets: S.daily.streak % 3 === 0 ? 1 : 0, sugar: 200 * S.daily.streak, jam: 30 * S.daily.streak};
   give(gain); return {gain, streak: S.daily.streak};
 }
 

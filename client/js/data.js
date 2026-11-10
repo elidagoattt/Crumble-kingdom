@@ -135,7 +135,7 @@ function stageInfo(w, s) {
     name: world.name + ' ' + (w + 1) + '-' + (s + 1),
     power: Math.round(1050 * scale * (boss ? 1.2 : elite ? 1.1 : 1)),
     reward: {sugar: Math.round(120 + n * 22), jam: 30 + n * 6, flour: 10 + n * 3, butter: n > 2 ? 4 + n * 2 : 0},
-    firstGems: boss ? 200 : elite ? 80 : 30
+    firstCutters: boss ? 2 : elite ? 1 : 0, firstTickets: boss ? 1 : 0
   };
 }
 
@@ -148,7 +148,6 @@ const BUILDINGS = {
   mill:    {name:'Butter Churn',    icon:'🧈', size:2, make:'butter', rate:8,  cap:50,  cost:{sugar:400, flour:60},   max:10, need:2, text:'Churns butter for upgrades.'},
   bakery:  {name:'Jam Kitchen',     icon:'🍓', size:2, make:'jam',    rate:10, cap:70,  cost:{sugar:300, flour:40},   max:10, need:2, text:'Cooks jam that levels up your sweets.'},
   cottage: {name:'Gingerbread House',icon:'🏠', size:2, cozy:12, cost:{sugar:250, flour:50},             max:8, need:1, text:'A snug home. More of your sweets wander the kingdom.'},
-  well:    {name:'Magic Oven',      icon:'🔥', size:2, unique:true, cozy:15, cost:{sugar:500, flour:80, butter:10}, max:1, need:2, text:'Bake new friends here.'},
   candytree:{name:'Candy Tree',     icon:'🍭', size:1, decor:true, cozy:2,  cost:{sugar:30},                          need:1},
   lolly:   {name:'Lollipop',        icon:'🍭', size:1, decor:true, cozy:2,  cost:{sugar:30},                          need:1},
   flowers: {name:'Icing Flowers',   icon:'🌷', size:1, decor:true, cozy:2,  cost:{sugar:20},                          need:1},
@@ -185,33 +184,43 @@ const RES = {
   flour: {name:'Flour',  icon:'🌾'},
   butter:{name:'Butter', icon:'🧈'},
   jam:   {name:'Jam',    icon:'🍓'},
-  gems:  {name:'Gems',   icon:'💎'}
+  cutters:{name:'Cookie Cutters', icon:'✂️'},
+  tickets:{name:'Event Tickets',  icon:'🎟️'}
 };
 
-/* The Magic Oven. Gems are only ever earned by playing: they cannot be bought. Odds are shown in the game. */
+/* The Magic Oven. It is always open from the Oven button: nothing to build or level up.
+ * A classic bake costs Cookie Cutters; the special event bake costs Event Tickets.
+ * Both are only ever earned by playing: they cannot be bought. Odds are shown in the game. */
 const GACHA = {
-  cost1: 100, cost10: 900, pity: 40,           // an Epic or better is guaranteed within `pity` draws
+  cost1: 1, cost10: 10, pity: 40,              // an Epic or better is guaranteed within `pity` bakes
   odds: {common: 60, rare: 30, epic: 9, special: 1}
 };
+/* The special event. To change it (say, for Christmas) edit only this block: name, look, featured sweets, odds.
+ * `featured` sweets are picked half of the time whenever their rarity comes up. */
+const EVENT = {
+  id: 'festival', name: "Bakers' Festival", icon: '🎪', colors: ['#7b5cff', '#ffd45c'],
+  blurb: 'Better odds, and Antie, Klina and Luna turn up far more often!',
+  featured: ['antie', 'klina', 'luna'],
+  odds: {common: 48, rare: 34, epic: 14, special: 4}
+};
 
-// Guided goals, done in order. Each one pays gems.
+// Guided goals, done in order. Each one pays Cookie Cutters.
 const GOALS = [
-  {id:'pond',    text:'Build a Sugar Mill',               gems:30, check:s => count(s, 'pond') >= 1, go:'build'},
-  {id:'collect', text:'Collect sugar from your mill',     gems:30, check:s => s.stats.collected >= 1, go:'kingdom'},
-  {id:'stage1',  text:'Win stage 1-1',                    gems:60, check:s => (s.stars['0-0'] || 0) > 0, go:'map'},
-  {id:'lumber',  text:'Build a Flour Windmill',           gems:30, check:s => count(s, 'lumber') >= 1, go:'build'},
-  {id:'castle2', text:'Upgrade the Castle to level 2',    gems:80, check:s => s.castle >= 2, go:'kingdom'},
-  {id:'oven',    text:'Build the Magic Oven',             gems:50, check:s => count(s, 'well') >= 1, go:'build'},
-  {id:'draw',    text:'Bake a new friend in the Oven',    gems:50, check:s => s.stats.draws >= 1, go:'well'},
-  {id:'level',   text:'Level a sweet up to level 5',      gems:50, check:s => Object.values(s.cats).some(c => c.lv >= 5), go:'cats'},
-  {id:'boss1',   text:'Beat Baron Crumbsnatcher (1-13)',  gems:120, check:s => (s.stars['0-12'] || 0) > 0, go:'map'},
-  {id:'team5',   text:'Put 5 sweets in your team',        gems:60, check:s => s.team.filter(Boolean).length >= 5, go:'cats'},
-  {id:'cozy',    text:'Reach 60 cozy points',             gems:80, check:s => window.CK.cozy(s) >= 60, go:'build'},
-  {id:'world3',  text:'Finish Episode 2: Candy Blossom',  gems:150, check:s => (s.stars['1-14'] || 0) > 0, go:'map'},
-  {id:'castle4', text:'Upgrade the Castle to level 4',    gems:200, check:s => s.castle >= 4, go:'kingdom'},
-  {id:'castle6', text:'Upgrade the Castle to level 6',    gems:250, check:s => s.castle >= 6, go:'kingdom'},
-  {id:'ep5',     text:'Finish Episode 5: Honeycomb Hollow', gems:300, check:s => (s.stars['4-14'] || 0) > 0, go:'map'},
-  {id:'king',    text:'Defeat King Whiskers the Hungry',  gems:500, check:s => (s.stars['9-17'] || 0) > 0, go:'map'}
+  {id:'pond',    text:'Build a Sugar Mill',               cutters:1, check:s => count(s, 'pond') >= 1, go:'build'},
+  {id:'collect', text:'Collect sugar from your mill',     cutters:1, check:s => s.stats.collected >= 1, go:'kingdom'},
+  {id:'stage1',  text:'Win stage 1-1',                    cutters:1, check:s => (s.stars['0-0'] || 0) > 0, go:'map'},
+  {id:'lumber',  text:'Build a Flour Windmill',           cutters:1, check:s => count(s, 'lumber') >= 1, go:'build'},
+  {id:'castle2', text:'Upgrade the Castle to level 2',    cutters:1, check:s => s.castle >= 2, go:'kingdom'},
+  {id:'draw',    text:'Bake a new friend at the Oven',    cutters:1, check:s => s.stats.draws >= 1, go:'well'},
+  {id:'level',   text:'Level a sweet up to level 5',      cutters:1, check:s => Object.values(s.cats).some(c => c.lv >= 5), go:'cats'},
+  {id:'boss1',   text:'Beat Baron Crumbsnatcher (1-13)',  cutters:1, check:s => (s.stars['0-12'] || 0) > 0, go:'map'},
+  {id:'team5',   text:'Put 5 sweets in your team',        cutters:1, check:s => s.team.filter(Boolean).length >= 5, go:'cats'},
+  {id:'cozy',    text:'Reach 60 cozy points',             cutters:1, check:s => window.CK.cozy(s) >= 60, go:'build'},
+  {id:'world3',  text:'Finish Episode 2: Candy Blossom',  cutters:2, check:s => (s.stars['1-14'] || 0) > 0, go:'map'},
+  {id:'castle4', text:'Upgrade the Castle to level 4',    cutters:2, check:s => s.castle >= 4, go:'kingdom'},
+  {id:'castle6', text:'Upgrade the Castle to level 6',    cutters:2, check:s => s.castle >= 6, go:'kingdom'},
+  {id:'ep5',     text:'Finish Episode 5: Honeycomb Hollow', cutters:3, check:s => (s.stars['4-14'] || 0) > 0, go:'map'},
+  {id:'king',    text:'Defeat King Whiskers the Hungry',  cutters:5, check:s => (s.stars['9-17'] || 0) > 0, go:'map'}
 ];
 function count(s, type) { return s.buildings.filter(b => b.type === type).length; }
 
@@ -226,6 +235,6 @@ function catStats(id, own) {
 const levelCost = lv => Math.round(20 * Math.pow(lv, 1.25));
 const dupeJam = {common: 60, rare: 150, epic: 400, special: 1200};
 
-window.CKData = {ROLES, RARITY, CATS, STARTERS, FOES, BOSSES, WORLDS, EPISODES, TOTAL_LEVELS, levelIndex, GRID, STAGES_PER_WORLD, stageInfo, BUILDINGS, CASTLE, RES, GACHA, GOALS,
+window.CKData = {ROLES, RARITY, CATS, STARTERS, FOES, BOSSES, WORLDS, EPISODES, TOTAL_LEVELS, levelIndex, GRID, STAGES_PER_WORLD, stageInfo, BUILDINGS, CASTLE, RES, GACHA, EVENT, GOALS,
   MAX_LEVEL, catStats, levelCost, dupeJam, count};
 })();

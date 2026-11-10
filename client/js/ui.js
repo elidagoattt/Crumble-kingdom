@@ -38,14 +38,14 @@ function hero(id, size, pose) {
 // ---------------------------------------------------------------- HUD
 function renderHud() {
   const S = CK.state, el = $('res');
-  el.innerHTML = ['sugar', 'flour', 'butter', 'jam', 'gems'].map(k => `<span data-k="${k}"><i>${D.RES[k].icon}</i>${CK.fmt(S.res[k])}</span>`).join('') + `<span class="lvl">🏰 ${S.castle} · 🌼 ${CK.cozy()}</span>`;
+  el.innerHTML = ['sugar', 'flour', 'butter', 'jam', 'cutters', 'tickets'].map(k => `<span data-k="${k}"><i>${D.RES[k].icon}</i>${CK.fmt(S.res[k])}</span>`).join('') + `<span class="lvl">🏰 ${S.castle} · 🌼 ${CK.cozy()}</span>`;
   for (const k of Object.keys(S.res)) { if (lastRes[k] != null && S.res[k] > lastRes[k]) el.querySelector(`[data-k="${k}"]`)?.classList.add('bump'); lastRes[k] = S.res[k]; }
   const goal = CK.currentGoal(), g = $('goal');
   if (!goal) { g.hidden = true; document.querySelectorAll('#nav button').forEach(b => b.classList.remove('hint')); return; }
   const done = CK.goalDone(); g.hidden = false; g.className = 'goal' + (done ? ' done' : '');
-  g.innerHTML = `<i>${done ? '🎁' : '📜'}</i><div><b>GOAL ${S.goal + 1}/${D.GOALS.length}</b>${esc(goal.text)}</div><em>${done ? 'Claim 💎' + goal.gems : 'Go'}</em>`;
+  g.innerHTML = `<i>${done ? '🎁' : '📜'}</i><div><b>GOAL ${S.goal + 1}/${D.GOALS.length}</b>${esc(goal.text)}</div><em>${done ? 'Claim ✂️' + goal.cutters : 'Go'}</em>`;
   document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('hint', !done && b.dataset.open === goal.go));
-  g.onclick = () => { if (CK.goalDone()) { const got = CK.claimGoal(); sfx('collect'); toast('Goal done! +' + got.gems + ' 💎'); } else if (goal.go === 'kingdom') { closeSheet(); window.CKKingdom.home(); toast(goal.id === 'collect' ? 'Tap the bubble above your Sugar Mill.' : 'Tap your Cake Castle, then Upgrade.'); } else open(goal.go); };
+  g.onclick = () => { if (CK.goalDone()) { const got = CK.claimGoal(); sfx('collect'); toast('Goal done! +' + got.cutters + ' ✂️ Cookie Cutter' + (got.cutters === 1 ? '' : 's')); } else if (goal.go === 'kingdom') { closeSheet(); window.CKKingdom.home(); toast(goal.id === 'collect' ? 'Tap the bubble above your Sugar Mill.' : 'Tap your Cake Castle, then Upgrade.'); } else open(goal.go); };
 }
 
 // ---------------------------------------------------------------- build
@@ -81,18 +81,17 @@ function endPlacing() { $('placing').hidden = true; $('nav').hidden = false; }
 
 function buildingPanel(b) {
   const def = D.BUILDINGS[b.type];
-  if (b.type === 'well') return openWell();
   const max = CK.maxLevel(b), cost = b.lv < max || b.type === 'castle' ? CK.upgradeCost(b) : null, top = b.type === 'castle' ? b.lv >= D.CASTLE.length - 1 : b.lv >= (def.max || 1);
   let info = '';
   if (def.make) info = `<div class="statline"><span>${D.RES[def.make].icon} ${Math.round(CK.rateOf(b))}/min</span><span>Holds ${CK.capOf(b)}</span><span>Now ${CK.stored(b)}</span></div>`;
-  if (b.type === 'castle') { const next = D.CASTLE[b.lv + 1]; info = `<div class="statline"><span>Land ${CK.land()}×${CK.land()}</span><span>🌼 ${CK.cozy()}</span></div>` + (next ? `<p>Next level clears the leaves to ${next.land}×${next.land} land, allows more buildings and gives +50 💎.</p>` : '<p>All the land is cleared!</p>'); }
+  if (b.type === 'castle') { const next = D.CASTLE[b.lv + 1]; info = `<div class="statline"><span>Land ${CK.land()}×${CK.land()}</span><span>🌼 ${CK.cozy()}</span></div>` + (next ? `<p>Next level clears the leaves to ${next.land}×${next.land} land, allows more buildings and gives +1 ✂️ Cookie Cutter.</p>` : '<p>All the land is cleared!</p>'); }
   const canUp = !def.decor && cost && !top;
   modal(`<div class="card"><button class="x" data-close>✕</button><div class="hero" data-th></div>
     <h2>${def.name}${def.decor ? '' : ' <small>Lv ' + b.lv + '</small>'}</h2><p>${def.text || 'A decoration. Adds 🌼 ' + def.cozy + ' cozy points.'}</p>${info}
     ${canUp ? (b.lv >= max && b.type !== 'castle' ? '<p><b>Upgrade the Castle to level this up more.</b></p>' : `<button class="btn green col" data-up ${CK.canPay(cost) ? '' : 'disabled'}>Upgrade to Lv ${b.lv + 1}<small>${CK.costText(cost)}</small></button>`) : top && !def.decor ? '<p><b>Top level!</b></p>' : ''}
     <div class="row">${def.fixed ? '' : '<button class="btn blue" data-move>Move</button><button class="btn red" data-del>Remove</button>'}</div></div>`, m => {
     const th = document.createElement('canvas'), d = Math.min(3, devicePixelRatio || 1); th.width = th.height = 120 * d; th.style.width = th.style.height = '120px'; const g = th.getContext('2d'); g.scale(d, d); Art.building(g, b.type, 60, 112, 104, {lv: b.lv, t: .5, seed: b.id}); m.querySelector('[data-th]').append(th);
-    m.querySelector('[data-up]')?.addEventListener('click', () => { const res = CK.upgrade(b.id); if (fail(res)) return; sfx('level'); closeModal(); if (b.type === 'castle') { window.CKKingdom.burstLeaves(); toast('The leaves fall back! More land and buildings unlocked. +50 💎'); } else toast(def.name + ' is now level ' + res.building.lv + '!'); });
+    m.querySelector('[data-up]')?.addEventListener('click', () => { const res = CK.upgrade(b.id); if (fail(res)) return; sfx('level'); closeModal(); if (b.type === 'castle') { window.CKKingdom.burstLeaves(); toast('The leaves fall back! More land and buildings unlocked. +1 ✂️'); } else toast(def.name + ' is now level ' + res.building.lv + '!'); });
     m.querySelector('[data-move]')?.addEventListener('click', () => { closeModal(); window.CKKingdom.startMoving(b.id); });
     m.querySelector('[data-del]')?.addEventListener('click', () => confirmBox('Remove ' + def.name + '?', 'You get half of its cost back.', 'Remove', () => { CK.remove(b.id); toast(def.name + ' removed.'); }));
   });
@@ -184,7 +183,7 @@ function stageCard(w, st) {
     <p>${info.elite ? '<b>⚡ Elite level:</b> tougher foes, bigger reward.<br>' : ''}${info.boss ? '<b>Boss: ' + D.BOSSES[info.boss].name + '</b><br>Watch for ' + D.BOSSES[info.boss].special.icon + ' ' + D.BOSSES[info.boss].special.name + '!' : info.waves.length + ' waves'}</p>
     <div class="hero" data-foes></div>
     <div class="statline"><span>⚡ Your team ${CK.fmt(power)}</span><span>Needs about ${CK.fmt(info.power)}</span><span>${tough}</span></div>
-    <div class="chips"><span class="chip">🍬 ${CK.fmt(info.reward.sugar * (first ? 1 : .5))}</span><span class="chip">🍓 ${Math.round(info.reward.jam * (first ? 1 : .5))}</span>${first ? `<span class="chip">💎 ${info.firstGems}</span>` : ''}</div>
+    <div class="chips"><span class="chip">🍬 ${CK.fmt(info.reward.sugar * (first ? 1 : .5))}</span><span class="chip">🍓 ${Math.round(info.reward.jam * (first ? 1 : .5))}</span>${first && info.firstCutters ? `<span class="chip">✂️ ${info.firstCutters}</span>` : ''}${first && info.firstTickets ? `<span class="chip">🎟️ ${info.firstTickets}</span>` : ''}${CK.starsOf(w, st) < 3 ? '<span class="chip">3★ = ✂️ 1</span>' : ''}</div>
     <div class="row"><button class="btn blue" data-team>Team</button><button class="btn green" data-go>Fight!</button></div></div>`, m => {
     const c = document.createElement('canvas'), d = Math.min(3, devicePixelRatio || 1), wd = 260, ht = 84; c.width = wd * d; c.height = ht * d; c.style.width = wd + 'px'; c.style.height = ht + 'px'; const g = c.getContext('2d'); g.scale(d, d);
     const list = kinds.slice(0, info.boss ? 2 : 4), step = wd / (list.length + (info.boss ? 1.6 : 0) + 1);
@@ -197,28 +196,37 @@ function stageCard(w, st) {
 }
 
 // ---------------------------------------------------------------- Magic Oven
-function openWell() {
-  const S = CK.state, G = D.GACHA, has = S.buildings.some(b => b.type === 'well');
+let ovenTab = 'classic';
+function openWell(tab) {
+  if (tab) ovenTab = tab;
+  const S = CK.state, G = D.GACHA, EV = D.EVENT, ev = ovenTab === 'event';
   closeModal();
-  const shelf = ['antie', 'klina', 'luna', 'cosmo', 'truffle', 'rolly'];
-  sheet('well', `<div class="shop"><div class="awning"><span>✦ THE MAGIC OVEN ✦</span></div>
-    <div class="shop-in"><div class="shelf">${shelf.map(id => `<span class="jar" style="--rc:${rc(id)}"><span data-p="${id}"></span><small>${D.RARITY[D.CATS[id].rarity].name}</small></span>`).join('')}</div>
+  const shelf = ev ? EV.featured.concat(['cosmo', 'truffle', 'rolly']).slice(0, 6) : ['antie', 'klina', 'luna', 'cosmo', 'truffle', 'rolly'];
+  const odds = ev ? EV.odds : G.odds, cur = ev ? 'tickets' : 'cutters', icon = D.RES[cur].icon, have = S.res[cur] || 0, left = Math.max(1, G.pity - S.pity);
+  sheet('well', `<div class="shop${ev ? ' event' : ''}" style="--ev1:${EV.colors[0]};--ev2:${EV.colors[1]}"><div class="awning"><span>✦ THE MAGIC OVEN ✦</span></div>
+    <div class="shop-in"><div class="otabs"><button class="${ev ? '' : 'on'}" data-tab="classic">🍪 Classic Bake<small>${D.RES.cutters.icon} ${CK.fmt(S.res.cutters || 0)}</small></button><button class="ev ${ev ? 'on' : ''}" data-tab="event">${EV.icon} ${esc(EV.name)}<small>${D.RES.tickets.icon} ${CK.fmt(S.res.tickets || 0)}</small></button></div>
+      <div class="shelf">${shelf.map(id => `<span class="jar" style="--rc:${rc(id)}"><span data-p="${id}"></span><small>${D.RARITY[D.CATS[id].rarity].name}</small></span>`).join('')}</div>
       <div class="counter"><div class="oven" data-well></div>
-        <div class="till">${has ? `<p class="sign">Pop in 💎 gems and bake a new friend!</p>
-          <div class="tags"><button class="tag blue" data-draw="1"><b>Bake 1</b><span>💎 ${G.cost1}</span></button><button class="tag gold" data-draw="10"><b>Bake 10</b><span>💎 ${G.cost10}</span></button></div>
-          <p class="note">You have 💎 ${CK.fmt(S.res.gems)}. An Epic or better is guaranteed within ${Math.max(1, G.pity - S.pity)} more bake${G.pity - S.pity === 1 ? '' : 's'}.</p>`
-          : `<p class="sign">The oven is not built yet.</p><p class="note">Build the Magic Oven in your kingdom (needs Castle level 2).</p><button class="btn green" data-build>Open Build</button>`}
-          <div class="odds">${Object.entries(G.odds).reverse().map(([k, v]) => `<div><span style="color:${D.RARITY[k].color}">● ${D.RARITY[k].name}</span><span>${v}%</span></div>`).join('')}</div>
-          <p class="note">Gems are only earned by playing. A friend you already have gains a ★ instead; at 5★ you get jam.</p></div></div></div></div>`, s => {
+        <div class="till"><p class="sign">${ev ? esc(EV.blurb) : 'Pop in a Cookie Cutter and bake a new friend!'}</p>
+          <div class="tags"><button class="tag blue${have < G.cost1 ? ' poor' : ''}" data-draw="1"><b>Bake 1</b><span>${icon} ${G.cost1}</span></button><button class="tag gold${have < G.cost10 ? ' poor' : ''}" data-draw="10"><b>Bake 10</b><span>${icon} ${G.cost10}</span></button></div>
+          <p class="note">You have ${icon} ${CK.fmt(have)} ${D.RES[cur].name}. An Epic or better is guaranteed within ${left} more bake${left === 1 ? '' : 's'}.</p>
+          <div class="odds">${Object.entries(odds).reverse().map(([k, v]) => `<div><span style="color:${D.RARITY[k].color}">● ${D.RARITY[k].name}</span><span>${v}%</span></div>`).join('')}</div>
+          <p class="note">${ev ? '🎟️ Event Tickets come from beating episode bosses and from daily gifts.' : '✂️ Cookie Cutters come from 3-star wins, goals, castle upgrades and daily gifts.'} They cannot be bought. A friend you already have gains a ★ instead; at 5★ you get jam.</p></div></div></div></div>`, s => {
     s.querySelector('.panel').classList.add('shop-panel');
-    s.querySelector('[data-well]').append(Art.thumb('well', 150));
+    const c = document.createElement('canvas'), d = Math.min(3, window.devicePixelRatio || 1); c.width = 170 * d; c.height = 150 * d; c.style.width = '170px'; c.style.height = '150px';
+    const g = c.getContext('2d'); g.setTransform(d * .62, 0, 0, d * .62, -320 * d * .62 + 85 * d, -92 * d * .62); window.CKBake.drawOven(g, .4, 0, .8, '#ffb02e', 0);
+    s.querySelector('[data-well]').append(c);
     s.querySelectorAll('[data-p]').forEach(el => el.replaceWith(Art.portrait(el.dataset.p, 54)));
-    s.querySelector('[data-build]')?.addEventListener('click', openBuild);
-    s.querySelectorAll('[data-draw]').forEach(b => b.onclick = () => { const res = CK.draw(+b.dataset.draw); if (fail(res)) return; showPulls(res.results); });
+    s.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { sfx('tap'); openWell(b.dataset.tab); });
+    s.querySelectorAll('[data-draw]').forEach(b => b.onclick = () => {
+      const res = CK.draw(+b.dataset.draw, ev); if (fail(res)) return;
+      renderHud();
+      window.CKBake.play(res.results, {event: ev}, skipped => { if (skipped || res.results.length > 1) showPulls(res.results, true); else if (sheetName === 'well') openWell(); });
+    });
   });
 }
-function showPulls(results) {
-  const best = results.some(r => r.rarity === 'special' || r.rarity === 'epic'); sfx(best ? 'rare' : 'draw');
+function showPulls(results, quiet) {
+  const best = results.some(r => r.rarity === 'special' || r.rarity === 'epic'); if (!quiet) sfx(best ? 'rare' : 'draw');
   const single = results.length === 1, r0 = results[0];
   modal(`<div class="card" data-sticky><h2>${single ? (r0.isNew ? 'A new friend!' : D.CATS[r0.id].name + ' again!') : 'Fresh from the oven'}</h2>
     ${single ? `<div class="hero" data-hero></div><span class="rar" style="--rc:${D.RARITY[r0.rarity].color}">${D.RARITY[r0.rarity].name}</span><p><b>${D.CATS[r0.id].name}</b><br>${r0.isNew ? D.ROLES[D.CATS[r0.id].role].icon + ' ' + D.ROLES[D.CATS[r0.id].role].name + ' · ' + D.CATS[r0.id].skill.name : r0.starUp ? 'Now ' + r0.starUp + '★ and stronger!' : '+' + r0.jam + ' 🍓 jam'}</p>`
@@ -265,7 +273,7 @@ function help() {
     <p style="text-align:left">🔨 <b>Build</b> mills, churns and kitchens. They fill up over time: tap them to collect.<br><br>
     📖 Play the <b>Story</b> with a team of up to 5 sweets. They fight on their own; you choose when to use each skill.<br><br>
     🛡️ Guards and Slashers stand in front. Flying foes dive at your back row, so keep a Healer.<br><br>
-    🍓 Spend <b>jam</b> to level up your sweets. 🔥 Spend <b>gems</b> at the Magic Oven to bake new friends.<br><br>
+    🍓 Spend <b>jam</b> to level up your sweets. 🔥 The <b>Magic Oven</b> is always open: bake new friends with ✂️ Cookie Cutters, or 🎟️ Event Tickets in the special event.<br><br>
     🏰 Upgrade the <b>Castle</b> to clear the leaves: more land and more buildings.</p><button class="btn green" data-close>Got it</button></div>`);
 }
 function story() {
@@ -275,7 +283,7 @@ function story() {
 }
 function daily() {
   const got = CK.dailyGift(); if (!got) return;
-  modal(`<div class="card"><h2>🎁 Daily gift</h2><p>Day ${got.streak} in a row! Come back tomorrow for more.</p><div class="chips">${Object.entries(got.gain).map(([k, v]) => `<span class="chip">${D.RES[k].icon} +${CK.fmt(v)}</span>`).join('')}</div><button class="btn green" data-close>Thanks!</button></div>`);
+  modal(`<div class="card"><h2>🎁 Daily gift</h2><p>Day ${got.streak} in a row! Come back tomorrow for more.</p><div class="chips">${Object.entries(got.gain).filter(([, v]) => v > 0).map(([k, v]) => `<span class="chip">${D.RES[k].icon} +${CK.fmt(v)}</span>`).join('')}</div><button class="btn green" data-close>Thanks!</button></div>`);
   sfx('collect');
 }
 

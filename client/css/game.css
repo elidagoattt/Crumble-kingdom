@@ -228,3 +228,23 @@ canvas { display: block; }
   #placing { bottom: calc(8px + var(--safe-b)); left: auto; right: calc(10px + env(safe-area-inset-right, 0px)); transform: none; }
   .result .stars { font-size: 34px; } .ribbon { font-size: 20px; }
 }
+
+/* ---- Magic Oven: bake tabs and the bake animation */
+.otabs { display: flex; gap: 8px; justify-content: center; margin: 0 0 12px; }
+.otabs button { flex: 1 1 0; max-width: 250px; padding: 7px 10px; border-radius: 14px; background: #fff6e6; border: 3px solid var(--ink); box-shadow: 0 4px 0 var(--ink); font-weight: 900; font-size: 13.5px; display: flex; flex-direction: column; align-items: center; opacity: .78; }
+.otabs button small { font-size: 12px; color: var(--brown); font-weight: 900; }
+.otabs button.on { opacity: 1; background: linear-gradient(#ffd96a, #ffb02e); transform: translateY(2px); box-shadow: 0 2px 0 var(--ink); }
+.otabs button.ev.on { background: linear-gradient(var(--ev2), var(--ev1)); color: #fff; } .otabs button.ev.on small { color: #fff; }
+.shop.event .awning { background: repeating-linear-gradient(90deg, var(--ev1) 0 34px, #fff6e6 34px 68px); }
+.shop.event .awning::after { background: radial-gradient(circle at 17px 0, var(--ev1) 16px, transparent 17px) 0 0 / 68px 14px, radial-gradient(circle at 51px 0, #fff6e6 16px, transparent 17px) 0 0 / 68px 14px; }
+.tag.poor { filter: grayscale(.75); opacity: .7; }
+.oven canvas { display: block; }
+.bake { position: relative; width: min(100%, 760px, calc((100vh - 16px) * 640 / 360)); border-radius: 24px; overflow: hidden; border: 4px solid var(--ink); box-shadow: 0 8px 0 #0006; background: #ffe2b8; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: manipulation; animation: pop .2s; }
+.bake canvas { display: block; width: 100%; height: auto; }
+.bake-skip { position: absolute; top: 10px; right: 10px; padding: 7px 14px; border-radius: 99px; background: #fff6e6; border: 3px solid var(--ink); box-shadow: 0 3px 0 var(--ink); font-weight: 900; font-size: 13px; }
+.bake-count { position: absolute; top: 12px; left: 14px; padding: 3px 12px; border-radius: 99px; background: #3a2433cc; color: #fff; font-weight: 900; font-size: 13px; } .bake-count:empty { display: none; }
+.bake-info { position: absolute; left: 50%; top: 8%; transform: translateX(-50%); min-width: 190px; max-width: 80%; padding: 8px 22px 9px; border-radius: 18px; background: linear-gradient(var(--cream), var(--cream2)); border: 3px solid var(--ink); box-shadow: 0 5px 0 var(--ink), 0 0 0 5px var(--rc); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1px; animation: bakeinfo .35s cubic-bezier(.3, 1.6, .5, 1) both; pointer-events: none; }
+.bake-info[hidden], .bake-tap[hidden] { display: none; }
+.bake-info b { font-size: 24px; font-weight: 900; line-height: 1.1; } .bake-info em { font-style: normal; font-size: 13px; font-weight: 800; color: var(--brown); }
+.bake-tap { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; font-weight: 900; font-size: 13px; color: #fff; text-shadow: 0 2px 0 var(--ink), 0 0 6px var(--ink); animation: pulse 1s infinite; pointer-events: none; }
+@keyframes bakeinfo { from { transform: translateX(-50%) scale(.4); opacity: 0; } }

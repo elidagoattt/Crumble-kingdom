@@ -25,6 +25,7 @@ No installs needed (Python standard library only). On Render the service runs `p
 | `client/js/art.js` | The art layer: uses a PNG from `client/assets/` if there is one, otherwise the code-drawn art. Also draws buildings. |
 | `client/js/kingdom.js` | The island: camera, leaves, buildings, placing, wandering sweets. |
 | `client/js/battle.js` | Battles: waves, skills, bosses, Auto, speeds 1x / 1.5x / 2.5x. |
+| `client/js/bake.js` | The Magic Oven bake animation (a sweet pops out of the oven). |
 | `client/js/ui.js` | Menus: build, sweets, story map, story scenes, Magic Oven, settings. |
 | `client/js/sound.js` | Sound effects and the soundtrack (played live from note lists, no files). |
 | `server.py` | Serves the game and lists replacement art at `/api/art`. |

@@ -30,6 +30,8 @@ const SOUNDS = {
   draw: () => [392, 494, 587, 784].forEach((f, i) => tone(f, .14, 'sine', .1, 0, i * .07)),
   rare: () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, .25, 'triangle', .11, 0, i * .08)),
   level: () => { tone(587, .1, 'triangle'); tone(880, .2, 'triangle', .11, 0, .09); },
+  ovenhum: () => { tone(70, 1.0, 'sawtooth', .05, 60); tone(105, 1.0, 'triangle', .06, 90); },
+  ovending: () => { tone(1568, .5, 'sine', .13); tone(2093, .7, 'sine', .1, 0, .07); tone(140, .18, 'square', .06, -60); },
   error: () => tone(160, .14, 'square', .06)
 };
 function play(name) { if (on()) try { SOUNDS[name]?.(); } catch { /* sound is never worth a crash */ } }
