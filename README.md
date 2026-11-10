@@ -1,34 +1,15 @@
-# Crumble Kingdom — test build
+# Crumble Kingdom Test 🍪
 
-A tiny, playable candy-kingdom platformer featuring **Jax Cookie** and **Pomni Cookie**.
-
-This repository contains an original, hand-drawn **placeholder** character-art prototype based on the owner's reference screenshots. It is **not** the artwork from the screenshots and is not a finished full game.
+A small **original Cookie Run: Kingdom-style fan-game prototype** featuring **Jax Cookie** (Charge / Front) and **Pomni Cookie** (Ranged / Middle), drawn with temporary canvas art and placeholder idle animations.
 
 ## Play
+- Select **Start Battle**.
+- Cookies automatically attack enemies in three waves.
+- Tap Jax's **Prank Rush** and Pomni's **Jester Volley** special skills when their cooldowns finish.
+- On desktop press **1** / **2** for skills. Works on mobile with touch.
+- Win after defeating the boss wave; retry if both cookies are knocked out.
 
-Choose Jax Cookie (faster running) or Pomni Cookie (slightly higher jump). Run through the candy kingdom, collect eight sugar stars, dodge jelly enemies, and reach the castle gate.
+## Development
+Self-contained browser prototype in `index.html`; Python HTTP server in `server.py`. Render uses Python runtime, build command `python -m compileall -q server.py`, start `python server.py`, free plan. Port read from `PORT`.
 
-- Desktop: **A / D** or **← / →** to move; **W / ↑ / Space** to jump; **P** to pause; **R** to restart.
-- Phone: on-screen left, right and jump buttons (landscape recommended).
-- Character choice, pause, reset, sound toggle, and a completion screen are included.
-
-## Local run
-
-```bash
-python server.py
-```
-
-Open http://localhost:10000 — no external dependencies required.
-
-## Render
-
-Python web service, main branch. Build command: `python -m py_compile server.py`; start command: `python server.py`. `PORT` is read from the Render environment.
-
-## Source
-
-- `index.html` — game UI and character selection
-- `style.css` — responsive stage and touch controls
-- `game.js` — canvas game, animations, input and levels
-- `server.py` — minimal stdlib HTTP server and health endpoint
-
-All character drawings are temporary originals; replace with approved sprite sheets later.
+Character art and battle moves are temporary drawings, not extracted assets or final animation sheets. The prototype does **not** yet include a kingdom builder, gacha, persistent player accounts or true online multiplayer.
