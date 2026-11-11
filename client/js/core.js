@@ -56,7 +56,7 @@ function fmt(n) { n = Math.floor(n); return n >= 1e6 ? (n / 1e6).toFixed(1).repl
 const land = (lv = S.castle) => D.CASTLE[lv].land;                // side of the cleared square, in tiles
 const landStart = (lv = S.castle) => (D.GRID - land(lv)) / 2;     // first cleared tile (the square is centred on the castle)
 const cleared = (x, y, lv = S.castle) => { const o = landStart(lv), n = land(lv); return x >= o && y >= o && x < o + n && y < o + n; };
-const limitOf = type => { const b = D.BUILDINGS[type]; if (b.decor) return 99; if (b.unique) return 1; return D.CASTLE[S.castle].limit[type] || 0; };
+const limitOf = type => { const b = D.BUILDINGS[type]; if (b.decor) return 99; if (b.unique) return S.castle >= (b.need || 1) ? 1 : 0; if (b.per) return S.castle < b.need ? 0 : 1 + Math.floor((S.castle - b.need) / b.per); return D.CASTLE[S.castle].limit[type] || 0; };
 const countOf = type => S.buildings.filter(b => b.type === type).length;
 const cozy = (s = S) => s.buildings.reduce((sum, b) => sum + (D.BUILDINGS[b.type].cozy || 0) * (b.lv || 1), 0) + s.castle * 10;
 const buildCost = type => { const b = D.BUILDINGS[type], n = countOf(type); const out = {}; for (const [k, v] of Object.entries(b.cost || {})) out[k] = Math.round(v * (b.decor ? 1 : Math.pow(1.6, n))); return out; };
@@ -123,12 +123,12 @@ function toggleTeam(id) {
 function rollOne(event) {
   S.pity++; S.stats.draws++;
   const odds = event ? D.EVENT.odds : D.GACHA.odds; let r = Math.random() * 100, rarity = 'common';
-  if (S.pity >= D.GACHA.pity) rarity = Math.random() < (event ? .25 : .1) ? 'special' : 'epic';
-  else if ((r -= odds.special) < 0) rarity = 'special';
+  if (S.pity >= D.GACHA.pity) rarity = event && Math.random() < .25 ? 'special' : 'epic';
+  else if ((r -= odds.special || 0) < 0) rarity = 'special';
   else if ((r -= odds.epic) < 0) rarity = 'epic';
   else if ((r -= odds.rare) < 0) rarity = 'rare';
   if (rarity === 'epic' || rarity === 'special') S.pity = 0;
-  let pool = Object.keys(D.CATS).filter(id => D.CATS[id].rarity === rarity);
+  let pool = Object.keys(D.CATS).filter(id => D.CATS[id].rarity === rarity && (event || !D.CATS[id].eventOnly));
   if (event) { const feat = pool.filter(id => D.EVENT.featured.includes(id)); if (feat.length && Math.random() < .5) pool = feat; }
   const id = pool[Math.floor(Math.random() * pool.length)];
   const have = S.cats[id];

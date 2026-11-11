@@ -43,8 +43,8 @@ const CATS = {
   toffee:  {name:'Toffee',   kind:'Wrapped Toffee',     role:'shot',   rarity:'common',  hp:410, atk:50, skill:{name:'Sticky Toffee',  icon:'🍬', kind:'stun',  power:1.2, cd:12, dur:2.2, text:'Toffee splats the foes and glues them in place.'}},
   stack:   {name:'Stack',    kind:'Pancake Stack',      role:'magic',  rarity:'rare',    hp:380, atk:66, skill:{name:'Syrup Zap',      icon:'⚡', kind:'aoe',   power:2.0, cd:11, text:'Hot syrup jumps across every foe.'}},
   rolly:   {name:'Rolly',    kind:'Matcha Roll',        role:'support',rarity:'epic',    hp:460, atk:52, skill:{name:'Cream Guard',    icon:'🍵', kind:'shield',power:0.4, cd:14, dur:6, text:'Whipped cream swirls round the team and blocks most damage.'}},
-  antie:   {name:'Antie',    kind:'Blueberry Cookie',   role:'slash',  rarity:'special', hp:560, atk:86, skill:{name:'Powered Form',   icon:'🔺', kind:'form',  power:2.2, cd:16, dur:7, text:'Antie powers up: far stronger and faster for a while.'}},
-  klina:   {name:'Klina',    kind:'Sugar Glass Cookie', role:'magic',  rarity:'special', hp:450, atk:82, skill:{name:'Time Freeze',    icon:'⏳', kind:'freeze',power:2.6, cd:17, dur:3.5, text:'The hourglass grows and flips. Time stops, then clocks strike every foe.'}}
+  antie:   {name:'Antie',    kind:'Blueberry Cookie',   role:'slash',  rarity:'special', eventOnly:true, hp:560, atk:86, skill:{name:'Powered Form',   icon:'🔺', kind:'form',  power:2.2, cd:16, dur:7, text:'Antie powers up: far stronger and faster for a while.'}},
+  klina:   {name:'Klina',    kind:'Sugar Glass Cookie', role:'magic',  rarity:'special', eventOnly:true, hp:450, atk:82, skill:{name:'Time Freeze',    icon:'⏳', kind:'freeze',power:2.6, cd:17, dur:3.5, text:'The hourglass grows and flips. Time stops, then clocks strike every foe.'}}
 };
 const STARTERS = ['chip', 'mochi', 'mallow'];
 
@@ -148,6 +148,18 @@ const BUILDINGS = {
   mill:    {name:'Butter Churn',    icon:'🧈', size:2, make:'butter', rate:8,  cap:50,  cost:{sugar:400, flour:60},   max:10, need:2, text:'Churns butter for upgrades.'},
   bakery:  {name:'Jam Kitchen',     icon:'🍓', size:2, make:'jam',    rate:10, cap:70,  cost:{sugar:300, flour:40},   max:10, need:2, text:'Cooks jam that levels up your sweets.'},
   cottage: {name:'Gingerbread House',icon:'🏠', size:2, cozy:12, cost:{sugar:250, flour:50},             max:8, need:1, text:'A snug home. More of your sweets wander the kingdom.'},
+  // Extra buildings. `per`: you may build one more every `per` castle levels after `need` (see limitOf in core.js).
+  honey:   {name:'Honey Hive',      icon:'🍯', size:2, make:'sugar',  rate:110, cap:800, cost:{sugar:1800, flour:300, butter:40},  max:10, need:3, per:3, text:'Busy bees make lots of sugar.'},
+  market:  {name:'Sweet Market',    icon:'🛒', size:2, make:'flour',  rate:36, cap:260, cost:{sugar:2600, flour:200, butter:80},   max:10, need:4, per:3, text:'Traders bring sacks of flour.'},
+  dairy:   {name:'Milk Barn',       icon:'🥛', size:2, make:'butter', rate:20, cap:150, cost:{sugar:5200, flour:900, butter:120},  max:10, need:5, per:3, text:'Fresh cream means much more butter.'},
+  jamfair: {name:'Berry Greenhouse',icon:'🫐', size:2, make:'jam',    rate:26, cap:200, cost:{sugar:4200, flour:700, butter:150},  max:10, need:5, per:3, text:'Berries all year round: lots of jam.'},
+  cutter:  {name:'Cutter Workshop', icon:'✂️', size:2, make:'cutters', rate:1/180, cap:2, slow:true, unique:true, cost:{sugar:3000, flour:500, butter:100}, max:6, need:3, text:'Forges a Cookie Cutter every few hours.'},
+  booth:   {name:'Ticket Booth',    icon:'🎟️', size:2, make:'tickets', rate:1/480, cap:1, slow:true, unique:true, cost:{sugar:9000, flour:1500, butter:400}, max:6, need:6, text:'Prints an Event Ticket every few hours.'},
+  parlour: {name:'Ice Cream Parlour',icon:'🍦', size:2, cozy:20, cost:{sugar:1500, flour:250, butter:30},   max:8, need:3, per:2, text:'A cool treat for everyone. Very cozy.'},
+  teahouse:{name:'Teapot House',    icon:'🫖', size:2, cozy:30, cost:{sugar:4000, flour:600, butter:120},  max:8, need:5, per:3, text:'Tea and biscuits at any hour.'},
+  school:  {name:'Baking School',   icon:'🎓', size:2, cozy:40, unique:true, cost:{sugar:6000, flour:1200, butter:200}, max:8, need:4, text:'Where little sweets learn to bake.'},
+  clock:   {name:'Candy Clock Tower',icon:'🕰️', size:2, cozy:60, unique:true, cost:{sugar:16000, flour:2800, butter:600}, max:8, need:7, text:'Chimes on the hour, every hour.'},
+  lighthouse:{name:'Candy Cane Lighthouse',icon:'🗼', size:2, cozy:90, unique:true, cost:{sugar:40000, flour:6500, butter:1600}, max:8, need:9, text:'Its light can be seen from every shore.'},
   candytree:{name:'Candy Tree',     icon:'🍭', size:1, decor:true, cozy:2,  cost:{sugar:30},                          need:1},
   lolly:   {name:'Lollipop',        icon:'🍭', size:1, decor:true, cozy:2,  cost:{sugar:30},                          need:1},
   flowers: {name:'Icing Flowers',   icon:'🌷', size:1, decor:true, cozy:2,  cost:{sugar:20},                          need:1},
@@ -193,13 +205,13 @@ const RES = {
  * Both are only ever earned by playing: they cannot be bought. Odds are shown in the game. */
 const GACHA = {
   cost1: 1, cost10: 10, pity: 40,              // an Epic or better is guaranteed within `pity` bakes
-  odds: {common: 60, rare: 30, epic: 9, special: 1}
+  odds: {common: 60, rare: 30, epic: 10}       // Special sweets marked `eventOnly` never come from a classic bake
 };
 /* The special event. To change it (say, for Christmas) edit only this block: name, look, featured sweets, odds.
  * `featured` sweets are picked half of the time whenever their rarity comes up. */
 const EVENT = {
   id: 'festival', name: "Bakers' Festival", icon: '🎪', colors: ['#7b5cff', '#ffd45c'],
-  blurb: 'Better odds, and Antie, Klina and Luna turn up far more often!',
+  blurb: 'The only place to bake Antie and Klina!',
   featured: ['antie', 'klina', 'luna'],
   odds: {common: 48, rare: 34, epic: 14, special: 4}
 };

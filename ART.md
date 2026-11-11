@@ -32,6 +32,9 @@ uses it. If not, it draws the built-in art. So you can replace one picture at a 
 
 **Buildings:** `castle` (Cake Castle) `pond` (Sugar Mill) `lumber` (Flour Windmill) `mill` (Butter Churn)
 `bakery` (Jam Kitchen) `cottage` (Gingerbread House)
+`honey` (Honey Hive) `market` (Sweet Market) `dairy` (Milk Barn) `jamfair` (Berry Greenhouse)
+`cutter` (Cutter Workshop) `booth` (Ticket Booth) `parlour` (Ice Cream Parlour) `teahouse` (Teapot House)
+`school` (Baking School) `clock` (Candy Clock Tower) `lighthouse` (Candy Cane Lighthouse)
 
 **Decorations:** `candytree` `lolly` `flowers` `gumdrop` `lamp` `fence` `tree` `cherry` `fountain` `statue` `crystals`
 

@@ -38,7 +38,8 @@ function hero(id, size, pose) {
 // ---------------------------------------------------------------- HUD
 function renderHud() {
   const S = CK.state, el = $('res');
-  el.innerHTML = ['sugar', 'flour', 'butter', 'jam', 'cutters', 'tickets'].map(k => `<span data-k="${k}"><i>${D.RES[k].icon}</i>${CK.fmt(S.res[k])}</span>`).join('') + `<span class="lvl">🏰 ${S.castle} · 🌼 ${CK.cozy()}</span>`;
+  el.innerHTML = ['sugar', 'flour', 'butter', 'jam', 'cutters', 'tickets'].map(k => `<span data-k="${k}"><i>${D.RES[k].icon}</i>${CK.fmt(S.res[k])}</span>`).join('') + `<span class="lvl" data-kingdom>🏰 Lv ${S.castle} · 🌼 ${CK.cozy()} <u>ⓘ</u></span>`;
+  el.onclick = e => { if (e.target.closest('[data-kingdom]')) { sfx('tap'); openKingdom(); } };
   for (const k of Object.keys(S.res)) { if (lastRes[k] != null && S.res[k] > lastRes[k]) el.querySelector(`[data-k="${k}"]`)?.classList.add('bump'); lastRes[k] = S.res[k]; }
   const goal = CK.currentGoal(), g = $('goal');
   if (!goal) { g.hidden = true; document.querySelectorAll('#nav button').forEach(b => b.classList.remove('hint')); return; }
@@ -83,8 +84,8 @@ function buildingPanel(b) {
   const def = D.BUILDINGS[b.type];
   const max = CK.maxLevel(b), cost = b.lv < max || b.type === 'castle' ? CK.upgradeCost(b) : null, top = b.type === 'castle' ? b.lv >= D.CASTLE.length - 1 : b.lv >= (def.max || 1);
   let info = '';
-  if (def.make) info = `<div class="statline"><span>${D.RES[def.make].icon} ${Math.round(CK.rateOf(b))}/min</span><span>Holds ${CK.capOf(b)}</span><span>Now ${CK.stored(b)}</span></div>`;
-  if (b.type === 'castle') { const next = D.CASTLE[b.lv + 1]; info = `<div class="statline"><span>Land ${CK.land()}×${CK.land()}</span><span>🌼 ${CK.cozy()}</span></div>` + (next ? `<p>Next level clears the leaves to ${next.land}×${next.land} land, allows more buildings and gives +1 ✂️ Cookie Cutter.</p>` : '<p>All the land is cleared!</p>'); }
+  if (def.make) info = `<div class="statline"><span>${D.RES[def.make].icon} ${def.slow ? '1 every ' + (Math.round(10 / CK.rateOf(b) / 60) / 10) + ' h' : Math.round(CK.rateOf(b)) + '/min'}</span><span>Holds ${CK.capOf(b)}</span><span>Now ${CK.stored(b)}</span></div>`;
+  if (b.type === 'castle') { const next = D.CASTLE[b.lv + 1]; info = `<div class="statline"><span>Land ${CK.land()}×${CK.land()}</span><span>🌼 ${CK.cozy()}</span></div>` + (next ? `<p>Next level clears the leaves to ${next.land}×${next.land} land, allows more buildings and gives +1 ✂️ Cookie Cutter.</p>` : '<p>All the land is cleared!</p>') + '<button class="btn blue" data-how>🏰 How kingdom levels work</button>'; }
   const canUp = !def.decor && cost && !top;
   modal(`<div class="card"><button class="x" data-close>✕</button><div class="hero" data-th></div>
     <h2>${def.name}${def.decor ? '' : ' <small>Lv ' + b.lv + '</small>'}</h2><p>${def.text || 'A decoration. Adds 🌼 ' + def.cozy + ' cozy points.'}</p>${info}
@@ -92,6 +93,7 @@ function buildingPanel(b) {
     <div class="row">${def.fixed ? '' : '<button class="btn blue" data-move>Move</button><button class="btn red" data-del>Remove</button>'}</div></div>`, m => {
     const th = document.createElement('canvas'), d = Math.min(3, devicePixelRatio || 1); th.width = th.height = 120 * d; th.style.width = th.style.height = '120px'; const g = th.getContext('2d'); g.scale(d, d); Art.building(g, b.type, 60, 112, 104, {lv: b.lv, t: .5, seed: b.id}); m.querySelector('[data-th]').append(th);
     m.querySelector('[data-up]')?.addEventListener('click', () => { const res = CK.upgrade(b.id); if (fail(res)) return; sfx('level'); closeModal(); if (b.type === 'castle') { window.CKKingdom.burstLeaves(); toast('The leaves fall back! More land and buildings unlocked. +1 ✂️'); } else toast(def.name + ' is now level ' + res.building.lv + '!'); });
+    m.querySelector('[data-how]')?.addEventListener('click', openKingdom);
     m.querySelector('[data-move]')?.addEventListener('click', () => { closeModal(); window.CKKingdom.startMoving(b.id); });
     m.querySelector('[data-del]')?.addEventListener('click', () => confirmBox('Remove ' + def.name + '?', 'You get half of its cost back.', 'Remove', () => { CK.remove(b.id); toast(def.name + ' removed.'); }));
   });
@@ -195,13 +197,40 @@ function stageCard(w, st) {
   });
 }
 
+// ---------------------------------------------------------------- Kingdom level guide
+const WHERE = {
+  sugar:  'Sugar Mills and Honey Hives make it. Story wins give lots too.',
+  flour:  'Flour Windmills and Sweet Markets make it. Story wins give some.',
+  butter: 'Butter Churns (Castle Lv 2) and Milk Barns make it. Later story levels give some.'
+};
+function unlocksAt(lv) { return Object.keys(D.BUILDINGS).filter(t => (D.BUILDINGS[t].need || 1) === lv && !D.BUILDINGS[t].fixed); }
+function openKingdom() {
+  const S = CK.state, lv = S.castle, top = lv >= D.CASTLE.length - 1, cost = top ? null : D.CASTLE[lv].cost, next = D.CASTLE[lv + 1];
+  const castle = S.buildings.find(b => b.type === 'castle'), can = cost && CK.canPay(cost);
+  const rows = cost ? Object.entries(cost).map(([k, v]) => { const have = S.res[k] || 0, ok = have >= v; return `<div class="need ${ok ? 'ok' : ''}"><i>${D.RES[k].icon}</i><div><b>${D.RES[k].name} <span>${CK.fmt(Math.min(have, v))} / ${CK.fmt(v)} ${ok ? '✓' : ''}</span></b><div class="bar"><span style="width:${Math.min(100, have / v * 100)}%"></span></div>${ok ? '' : `<small>${WHERE[k] || ''}</small>`}</div></div>`; }).join('') : '';
+  const names = lvl => unlocksAt(lvl).map(t => D.BUILDINGS[t].icon + ' ' + D.BUILDINGS[t].name);
+  const ladder = D.CASTLE.slice(1).map((c, i) => { const n = i + 1, list = names(n); return `<div class="rung ${n === lv ? 'now' : n < lv ? 'done' : ''}"><b>${n < lv ? '✓' : n === lv ? '★' : '🔒'} Lv ${n}</b><span>Land ${c.land}×${c.land}${list.length ? ' · ' + list.join(', ') : ' · more of each building'}</span></div>`; }).join('');
+  modal(`<div class="card wide kcard"><button class="x" data-close>✕</button><h2>🏰 Kingdom Level ${lv}</h2>
+    ${top ? '<p><b>Your kingdom is at the top level. All the land is cleared!</b></p>' : `
+    <p class="khow"><b>How to level up:</b> collect the ingredients below, then tap your <b>Cake Castle</b> and press <b>Upgrade</b>. Your kingdom level is your castle's level.</p>
+    <div class="needs">${rows}</div>
+    <div class="kunlock"><b>Level ${lv + 1} gives you</b><span>🍃 The leaves fall back: land grows to ${next.land}×${next.land}</span>${names(lv + 1).length ? `<span>🔨 New: ${names(lv + 1).join(', ')}</span>` : ''}<span>🏗️ More of each building, and buildings can level higher</span><span>✂️ +1 Cookie Cutter</span></div>
+    <button class="btn ${can ? 'green' : ''} col" data-kup>${can ? 'Upgrade the Castle now' : 'Show me the Castle'}<small>${can ? 'You have everything!' : 'Not enough ingredients yet'}</small></button>`}
+    <h3>All kingdom levels</h3><div class="ladder">${ladder}</div></div>`, m => {
+    m.querySelector('[data-kup]')?.addEventListener('click', () => {
+      if (can) { const res = CK.upgrade(castle.id); if (fail(res)) return; sfx('level'); closeModal(); closeSheet(); window.CKKingdom.home(); window.CKKingdom.burstLeaves(); toast('Kingdom level ' + CK.state.castle + '! The leaves fall back. +1 ✂️'); }
+      else { closeModal(); closeSheet(); window.CKKingdom.home(); toast('Tap your Cake Castle to upgrade it when you have the ingredients.'); }
+    });
+  });
+}
+
 // ---------------------------------------------------------------- Magic Oven
 let ovenTab = 'classic';
 function openWell(tab) {
   if (tab) ovenTab = tab;
   const S = CK.state, G = D.GACHA, EV = D.EVENT, ev = ovenTab === 'event';
   closeModal();
-  const shelf = ev ? EV.featured.concat(['cosmo', 'truffle', 'rolly']).slice(0, 6) : ['antie', 'klina', 'luna', 'cosmo', 'truffle', 'rolly'];
+  const shelf = ev ? EV.featured.concat(['cosmo', 'truffle', 'rolly']).slice(0, 6) : ['luna', 'cosmo', 'truffle', 'rolly', 'chip', 'stack'];
   const odds = ev ? EV.odds : G.odds, cur = ev ? 'tickets' : 'cutters', icon = D.RES[cur].icon, have = S.res[cur] || 0, left = Math.max(1, G.pity - S.pity);
   sheet('well', `<div class="shop${ev ? ' event' : ''}" style="--ev1:${EV.colors[0]};--ev2:${EV.colors[1]}"><div class="awning"><span>✦ THE MAGIC OVEN ✦</span></div>
     <div class="shop-in"><div class="otabs"><button class="${ev ? '' : 'on'}" data-tab="classic">🍪 Classic Bake<small>${D.RES.cutters.icon} ${CK.fmt(S.res.cutters || 0)}</small></button><button class="ev ${ev ? 'on' : ''}" data-tab="event">${EV.icon} ${esc(EV.name)}<small>${D.RES.tickets.icon} ${CK.fmt(S.res.tickets || 0)}</small></button></div>
@@ -211,7 +240,7 @@ function openWell(tab) {
           <div class="tags"><button class="tag blue${have < G.cost1 ? ' poor' : ''}" data-draw="1"><b>Bake 1</b><span>${icon} ${G.cost1}</span></button><button class="tag gold${have < G.cost10 ? ' poor' : ''}" data-draw="10"><b>Bake 10</b><span>${icon} ${G.cost10}</span></button></div>
           <p class="note">You have ${icon} ${CK.fmt(have)} ${D.RES[cur].name}. An Epic or better is guaranteed within ${left} more bake${left === 1 ? '' : 's'}.</p>
           <div class="odds">${Object.entries(odds).reverse().map(([k, v]) => `<div><span style="color:${D.RARITY[k].color}">● ${D.RARITY[k].name}</span><span>${v}%</span></div>`).join('')}</div>
-          <p class="note">${ev ? '🎟️ Event Tickets come from beating episode bosses and from daily gifts.' : '✂️ Cookie Cutters come from 3-star wins, goals, castle upgrades and daily gifts.'} They cannot be bought. A friend you already have gains a ★ instead; at 5★ you get jam.</p></div></div></div></div>`, s => {
+          <p class="note">${ev ? '🎟️ Event Tickets come from beating episode bosses and from daily gifts.' : '✂️ Cookie Cutters come from 3-star wins, goals, castle upgrades and daily gifts.'} They cannot be bought. ${ev ? '' : '<b>Antie and Klina only come from the special event.</b> '}A friend you already have gains a ★ instead; at 5★ you get jam.</p></div></div></div></div>`, s => {
     s.querySelector('.panel').classList.add('shop-panel');
     const c = document.createElement('canvas'), d = Math.min(3, window.devicePixelRatio || 1); c.width = 170 * d; c.height = 150 * d; c.style.width = '170px'; c.style.height = '150px';
     const g = c.getContext('2d'); g.setTransform(d * .62, 0, 0, d * .62, -320 * d * .62 + 85 * d, -92 * d * .62); window.CKBake.drawOven(g, .4, 0, .8, '#ffb02e', 0);
@@ -274,7 +303,7 @@ function help() {
     📖 Play the <b>Story</b> with a team of up to 5 sweets. They fight on their own; you choose when to use each skill.<br><br>
     🛡️ Guards and Slashers stand in front. Flying foes dive at your back row, so keep a Healer.<br><br>
     🍓 Spend <b>jam</b> to level up your sweets. 🔥 The <b>Magic Oven</b> is always open: bake new friends with ✂️ Cookie Cutters, or 🎟️ Event Tickets in the special event.<br><br>
-    🏰 Upgrade the <b>Castle</b> to clear the leaves: more land and more buildings.</p><button class="btn green" data-close>Got it</button></div>`);
+    🏰 Your <b>kingdom level</b> is your Castle's level. Tap the Castle and press Upgrade to clear the leaves: more land and more buildings. Tap the 🏰 chip at the top to see what you need.</p><button class="btn green" data-close>Got it</button></div>`);
 }
 function story() {
   modal(`<div class="card" data-sticky><div class="hero" data-hero></div><h2>Welcome to Crumble Kingdom!</h2>
@@ -297,5 +326,5 @@ function init() {
 }
 
 function friendJoined(id, done) { sfx('rare'); modal(`<div class="card" data-sticky><h2>A new friend joins!</h2><div class="hero" data-hero></div><span class="rar" style="--rc:${rc(id)}">${D.RARITY[D.CATS[id].rarity].name}</span><p><b>${D.CATS[id].name}</b> the ${D.CATS[id].kind}<br>${D.ROLES[D.CATS[id].role].icon} ${D.ROLES[D.CATS[id].role].name} · ${D.CATS[id].skill.name}</p><button class="btn green" data-ok>Welcome!</button></div>`, m => { m.querySelector('[data-hero]').append(hero(id, 150, 'win')); m.querySelector('[data-ok]').onclick = () => { closeModal(); done?.(); }; }); }
-window.CKUI = {init, toast, open, openEpisode, scene, friendJoined, closeSheet, closeModal, buildingPanel, placingBar, story, daily, renderHud};
+window.CKUI = {init, openKingdom, toast, open, openEpisode, scene, friendJoined, closeSheet, closeModal, buildingPanel, placingBar, story, daily, renderHud};
 })();
