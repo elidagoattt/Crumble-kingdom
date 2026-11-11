@@ -44,7 +44,13 @@ const CATS = {
   stack:   {name:'Stack',    kind:'Pancake Stack',      role:'magic',  rarity:'rare',    hp:380, atk:66, skill:{name:'Syrup Zap',      icon:'⚡', kind:'aoe',   power:2.0, cd:11, text:'Hot syrup jumps across every foe.'}},
   rolly:   {name:'Rolly',    kind:'Matcha Roll',        role:'support',rarity:'epic',    hp:460, atk:52, skill:{name:'Cream Guard',    icon:'🍵', kind:'shield',power:0.4, cd:14, dur:6, text:'Whipped cream swirls round the team and blocks most damage.'}},
   antie:   {name:'Antie',    kind:'Blueberry Cookie',   role:'slash',  rarity:'special', eventOnly:true, hp:560, atk:86, skill:{name:'Powered Form',   icon:'🔺', kind:'form',  power:2.2, cd:16, dur:7, text:'Antie powers up: far stronger and faster for a while.'}},
-  klina:   {name:'Klina',    kind:'Sugar Glass Cookie', role:'magic',  rarity:'special', eventOnly:true, hp:450, atk:82, skill:{name:'Time Freeze',    icon:'⏳', kind:'freeze',power:2.6, cd:17, dur:3.5, text:'The hourglass grows and flips. Time stops, then clocks strike every foe.'}}
+  klina:   {name:'Klina',    kind:'Sugar Glass Cookie', role:'magic',  rarity:'special', eventOnly:true, hp:450, atk:82, skill:{name:'Time Freeze',    icon:'⏳', kind:'freeze',power:2.6, cd:17, dur:3.5, text:'The hourglass grows and flips. Time stops, then clocks strike every foe.'}},
+  // ---- Christmas event sweets (only from the event bake)
+  ginger:  {name:'Ginger',   kind:'Gingerbread Cookie', role:'guard',  rarity:'rare',    eventOnly:true, hp:860, atk:42, skill:{name:'Icing Armour',   icon:'🎄', kind:'shield',power:0.5, cd:13, dur:5, text:'Thick icing: the team takes half damage for a while.'}},
+  twist:   {name:'Twist',    kind:'Candy Cane',         role:'shot',   rarity:'rare',    eventOnly:true, hp:430, atk:66, skill:{name:'Peppermint Shot',icon:'🍬', kind:'hit',   power:3.0, cd:9,  text:'A minty bolt that hits one foe very hard.'}},
+  figgy:   {name:'Figgy',    kind:'Christmas Pudding',  role:'heal',   rarity:'epic',    eventOnly:true, hp:470, atk:52, skill:{name:'Warm Custard',   icon:'🍮', kind:'heal',  power:3.8, cd:11, text:'A pour of warm custard heals the whole team.'}},
+  yule:    {name:'Yule',     kind:'Chocolate Yule Log', role:'slash',  rarity:'epic',    eventOnly:true, hp:540, atk:80, skill:{name:'Log Roll',       icon:'🪵', kind:'aoe',   power:2.2, cd:10, text:'Rolls right through the whole enemy line.'}},
+  frostine:{name:'Frostine', kind:'Snowflake Meringue', role:'magic',  rarity:'special', eventOnly:true, hp:470, atk:84, skill:{name:'Blizzard',       icon:'❄️', kind:'freeze',power:2.7, cd:16, dur:3.5, text:'A blizzard freezes every foe, then the ice shatters.'}}
 };
 const STARTERS = ['chip', 'mochi', 'mallow'];
 
@@ -207,13 +213,15 @@ const GACHA = {
   cost1: 1, cost10: 10, pity: 40,              // an Epic or better is guaranteed within `pity` bakes
   odds: {common: 60, rare: 30, epic: 10}       // Special sweets marked `eventOnly` never come from a classic bake
 };
-/* The special event. To change it (say, for Christmas) edit only this block: name, look, featured sweets, odds.
+/* The special event. To change it edit only this block: name, look, featured sweets, odds, end date.
  * `featured` sweets are picked half of the time whenever their rarity comes up. */
 const EVENT = {
-  id: 'festival', name: "Bakers' Festival", icon: '🎪', colors: ['#7b5cff', '#ffd45c'],
-  blurb: 'The only place to bake Antie and Klina!',
-  featured: ['antie', 'klina', 'luna'],
-  odds: {common: 48, rare: 34, epic: 14, special: 4}
+  id: 'christmas', name: 'Christmas Bake', icon: '🎄', colors: ['#c8323c', '#2e9a4a'],
+  blurb: 'Five festive sweets, only here until New Year. Antie and Klina too!',
+  featured: ['frostine', 'figgy', 'yule', 'ginger', 'twist'],
+  odds: {common: 48, rare: 34, epic: 14, special: 4},
+  until: '2027-01-01T00:00:00',   // the event bake closes at this time (leave out for an event that never ends)
+  festive: true                   // snow, lights and a snowy island while the event is on
 };
 
 // Guided goals, done in order. Each one pays Cookie Cutters.

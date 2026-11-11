@@ -228,19 +228,20 @@ function openKingdom() {
 let ovenTab = 'classic';
 function openWell(tab) {
   if (tab) ovenTab = tab;
-  const S = CK.state, G = D.GACHA, EV = D.EVENT, ev = ovenTab === 'event';
+  if (!CK.eventOn()) ovenTab = 'classic';
+  const S = CK.state, G = D.GACHA, EV = D.EVENT, ev = ovenTab === 'event', evOn = CK.eventOn();
   closeModal();
-  const shelf = ev ? EV.featured.concat(['cosmo', 'truffle', 'rolly']).slice(0, 6) : ['luna', 'cosmo', 'truffle', 'rolly', 'chip', 'stack'];
+  const shelf = ev ? EV.featured.concat(['antie', 'klina', 'cosmo']).slice(0, 6) : ['luna', 'cosmo', 'truffle', 'rolly', 'chip', 'stack'];
   const odds = ev ? EV.odds : G.odds, cur = ev ? 'tickets' : 'cutters', icon = D.RES[cur].icon, have = S.res[cur] || 0, left = Math.max(1, G.pity - S.pity);
   sheet('well', `<div class="shop${ev ? ' event' : ''}" style="--ev1:${EV.colors[0]};--ev2:${EV.colors[1]}"><div class="awning"><span>✦ THE MAGIC OVEN ✦</span></div>
-    <div class="shop-in"><div class="otabs"><button class="${ev ? '' : 'on'}" data-tab="classic">🍪 Classic Bake<small>${D.RES.cutters.icon} ${CK.fmt(S.res.cutters || 0)}</small></button><button class="ev ${ev ? 'on' : ''}" data-tab="event">${EV.icon} ${esc(EV.name)}<small>${D.RES.tickets.icon} ${CK.fmt(S.res.tickets || 0)}</small></button></div>
+    <div class="shop-in"><div class="otabs"><button class="${ev ? '' : 'on'}" data-tab="classic">🍪 Classic Bake<small>${D.RES.cutters.icon} ${CK.fmt(S.res.cutters || 0)}</small></button>${evOn ? `<button class="ev ${ev ? 'on' : ''}" data-tab="event">${EV.icon} ${esc(EV.name)}<small>${D.RES.tickets.icon} ${CK.fmt(S.res.tickets || 0)}</small></button>` : ''}</div>
       <div class="shelf">${shelf.map(id => `<span class="jar" style="--rc:${rc(id)}"><span data-p="${id}"></span><small>${D.RARITY[D.CATS[id].rarity].name}</small></span>`).join('')}</div>
       <div class="counter"><div class="oven" data-well></div>
-        <div class="till"><p class="sign">${ev ? esc(EV.blurb) : 'Pop in a Cookie Cutter and bake a new friend!'}</p>
+        <div class="till"><p class="sign">${ev ? esc(EV.blurb) + (EV.until ? ' Ends ' + new Date(EV.until).toLocaleDateString(undefined, {day: 'numeric', month: 'long'}) + '.' : '') : 'Pop in a Cookie Cutter and bake a new friend!'}</p>
           <div class="tags"><button class="tag blue${have < G.cost1 ? ' poor' : ''}" data-draw="1"><b>Bake 1</b><span>${icon} ${G.cost1}</span></button><button class="tag gold${have < G.cost10 ? ' poor' : ''}" data-draw="10"><b>Bake 10</b><span>${icon} ${G.cost10}</span></button></div>
           <p class="note">You have ${icon} ${CK.fmt(have)} ${D.RES[cur].name}. An Epic or better is guaranteed within ${left} more bake${left === 1 ? '' : 's'}.</p>
           <div class="odds">${Object.entries(odds).reverse().map(([k, v]) => `<div><span style="color:${D.RARITY[k].color}">● ${D.RARITY[k].name}</span><span>${v}%</span></div>`).join('')}</div>
-          <p class="note">${ev ? '🎟️ Event Tickets come from beating episode bosses and from daily gifts.' : '✂️ Cookie Cutters come from 3-star wins, goals, castle upgrades and daily gifts.'} They cannot be bought. ${ev ? '' : '<b>Antie and Klina only come from the special event.</b> '}A friend you already have gains a ★ instead; at 5★ you get jam.</p></div></div></div></div>`, s => {
+          <p class="note">${ev ? '🎟️ Event Tickets come from beating episode bosses and from daily gifts.' : '✂️ Cookie Cutters come from 3-star wins, goals, castle upgrades and daily gifts.'} They cannot be bought. ${ev ? '' : '<b>Event sweets, Antie and Klina only come from the special event.</b> '}A friend you already have gains a ★ instead; at 5★ you get jam.</p></div></div></div></div>`, s => {
     s.querySelector('.panel').classList.add('shop-panel');
     const c = document.createElement('canvas'), d = Math.min(3, window.devicePixelRatio || 1); c.width = 170 * d; c.height = 150 * d; c.style.width = '170px'; c.style.height = '150px';
     const g = c.getContext('2d'); g.setTransform(d * .62, 0, 0, d * .62, -320 * d * .62 + 85 * d, -92 * d * .62); window.CKBake.drawOven(g, .4, 0, .8, '#ffb02e', 0);
@@ -321,6 +322,7 @@ function init() {
   document.querySelectorAll('#nav [data-open]').forEach(b => b.onclick = () => { window.CKSound?.unlock(); sfx('tap'); open(b.dataset.open); });
   // Try full screen on the first tap (browsers ignore it without a user gesture; Android Chrome honours it)
   if (FS.can() && !FS.on() && !FS.standalone()) document.addEventListener('pointerdown', () => { if (!FS.on()) FS.enter(); }, {once: true});
+  if (CK.festive()) { document.body.classList.add('festive'); const sn = document.createElement('div'); sn.id = 'snow'; sn.innerHTML = '<i></i><i></i><i></i>'; document.body.append(sn); }
   CK.onChange(renderHud); renderHud();
   setInterval(renderHud, 5000);
 }

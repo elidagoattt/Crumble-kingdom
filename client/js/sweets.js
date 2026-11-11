@@ -28,7 +28,12 @@ const LOOKS = {
   stack:   {body:'stack',   base:'#f0c070', dark:'#c88a3a', icing:'#b8621e', top:'butter',  cheeks:'#f08a5a'},
   rolly:   {body:'roll',    base:'#a8d078', dark:'#7aa850', icing:'#fff8e8', top:'cream',   cheeks:'#f0a0a0'},
   antie:   {body:'cookie',  base:'#e8c090', dark:'#b88a52', bits:'#2a4a9a', top:'curls',    cheeks:'#f08a7a', robe:'#3b7de0', xeye:true},
-  klina:   {body:'cookie',  base:'#ffe6d0', dark:'#e0b090', bits:'#ff9ac0', top:'bow',      cheeks:'#ff9ab8', glasses:true, pendant:true, robe:'#7a4ad0'}
+  klina:   {body:'cookie',  base:'#ffe6d0', dark:'#e0b090', bits:'#ff9ac0', top:'bow',      cheeks:'#ff9ab8', glasses:true, pendant:true, robe:'#7a4ad0'},
+  ginger:  {body:'cookie',  base:'#b8703a', dark:'#8a4e22', bits:'#fff8ee', top:'santahat', cheeks:'#f08a7a'},
+  twist:   {body:'candy',   base:'#fff6f6', dark:'#e0c8c8', icing:'#e03a4a', top:'holly',    cheeks:'#ff9ab0'},
+  figgy:   {body:'ball',    base:'#5a3020', dark:'#3a1c10', icing:'#fff8ee', bits:'#e8c070', top:'holly',    cheeks:'#d8785a', eye:'#fff'},
+  yule:    {body:'roll',    base:'#6a3c24', dark:'#4a2614', icing:'#f6e6c8', top:'santahat', cheeks:'#d8785a', eye:'#fff'},
+  frostine:{body:'mallow',  base:'#f4fbff', dark:'#b8dcf0', top:'snowflake',cheeks:'#9ad0ff', robe:'#6ab8ee'}
 };
 const ROLE_TOOL = {guard: 'shield', slash: 'sword', shot: 'sling', magic: 'wand', heal: 'heart', support: 'whisk'};
 
@@ -56,6 +61,9 @@ const BODY = {
 
 // ---------------------------------------------------------------- toppings (drawn above the body, origin = top of body)
 const TOP = {
+  santahat(g) { poly(g, [[-10, 1], [10, 1], [7, -9], [13, -15]], '#e03a3a', OUT, 1.6); RR(g, -12, -1, 24, 5.5, 2.7, '#fff8ee', OUT, 1.5); C(g, 13, -15, 3.4, '#fff8ee', OUT, 1.4); },
+  holly(g) { for (const sx of [-1, 1]) { g.save(); g.rotate(sx * .5); E(g, sx * 6, -3, 6.5, 3.2, '#2e9a4a', OUT, 1.4); g.restore(); } for (const [x, y] of [[-2.2, -3], [2.2, -3], [0, -6.4]]) C(g, x, y, 2.5, '#e03a3a', OUT, 1.2); },
+  snowflake(g) { g.save(); g.translate(0, -7); g.strokeStyle = OUT; g.lineCap = 'round'; for (const [lw, col] of [[4.4, OUT], [2.2, '#bfe6ff']]) { g.lineWidth = lw; g.strokeStyle = col; for (let i = 0; i < 3; i++) { const a = i * Math.PI / 3; g.beginPath(); g.moveTo(Math.cos(a) * -8, Math.sin(a) * -8); g.lineTo(Math.cos(a) * 8, Math.sin(a) * 8); g.stroke(); } } C(g, 0, 0, 2.2, '#fff', OUT, 1); g.restore(); },
   none() {},
   stars(g) { K.star?.(g, 0, -4, 4, '#ffe38a', .2); },
   drizzle() {},

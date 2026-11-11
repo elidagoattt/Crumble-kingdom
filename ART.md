@@ -58,5 +58,7 @@ The Oven is a screen, not a building. Its bake animation uses these optional pic
 
 ## Changing the special event (for example at Christmas)
 
-Edit the `EVENT` block in `client/js/data.js`: its name, icon, two colours, the featured sweets and the odds.
+Edit the `EVENT` block in `client/js/data.js`: its name, icon, two colours, the featured sweets, the odds,
+the end date (`until`) and `festive` (snow, lights and a snowy island while the event runs).
+The Christmas sweets are `hero-ginger`, `hero-twist`, `hero-figgy`, `hero-yule` and `hero-frostine`.
 Nothing else needs to change.

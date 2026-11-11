@@ -136,7 +136,10 @@ function rollOne(event) {
   if (have.stars < 5) { have.stars++; return {id, rarity, starUp: have.stars}; }
   const jam = D.dupeJam[rarity]; S.res.jam += jam; return {id, rarity, jam};
 }
+const eventOn = () => !D.EVENT.until || Date.now() < new Date(D.EVENT.until).getTime();
+const festive = () => !!D.EVENT.festive && eventOn();
 function draw(times, event) {
+  if (event && !eventOn()) return {error: 'This event has ended.'};
   const cost = times === 10 ? D.GACHA.cost10 : D.GACHA.cost1;
   if (!pay(event ? {tickets: cost} : {cutters: cost})) return {error: event ? 'Not enough Event Tickets. Beat episode bosses and collect daily gifts to earn them.' : 'Not enough Cookie Cutters. Earn them with 3-star wins, goals and daily gifts.'};
   const results = []; for (let i = 0; i < times; i++) results.push(rollOne(event));
@@ -175,7 +178,7 @@ function dailyGift() {
   give(gain); return {gain, streak: S.daily.streak};
 }
 
-window.CK = {
+window.CK = {eventOn, festive,
   get state() { return S; }, load, save, reset, onChange: fn => listeners.add(fn), changed,
   canPay, pay, give, costText, fmt,
   land, landStart, cleared, limitOf, countOf, cozy, buildCost, upgradeCost, maxLevel, rateOf, capOf, stored, fits, build, move, remove, collect, upgrade,

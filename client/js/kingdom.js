@@ -123,6 +123,8 @@ function drawBuilding(b, ghost) {
 function draw() {
   g.setTransform(dpr * cam.z, 0, 0, dpr * cam.z, -cam.x * dpr * cam.z, -cam.y * dpr * cam.z);
   drawLand();
+  const snowy = CK.festive();
+  if (snowy) { const n = D.GRID * T; K.RR(g, -22, -22, n + 44, n + 44, 58, 'rgba(255,255,255,.62)'); g.fillStyle = 'rgba(190,225,255,.5)'; for (let i = 0; i < 70; i++) K.E(g, (i * 263) % n, (i * 149) % n, 16 + (i % 3) * 7, 5 + (i % 2) * 2, 'rgba(200,228,250,.45)'); }
   const S = CK.state, items = [];
   for (const b of S.buildings) { if (placing && placing.id === b.id) continue; items.push({y: (b.y + D.BUILDINGS[b.type].size) * T, b}); }
   for (const w of walkers) items.push({y: w.y, w});
@@ -138,6 +140,7 @@ function draw() {
     K.RR(g, placing.x * T + 2, placing.y * T + 2, size * T - 4, size * T - 4, 10, ok ? 'rgba(120,255,140,.45)' : 'rgba(255,90,90,.5)', ok ? '#3ad05a' : '#e03a3a', 3);
     drawBuilding({id: placing.id || 0, type: placing.type, x: placing.x, y: placing.y, lv: placing.lv || 1}, true);
   }
+  if (snowy) { g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = '#fff'; for (let i = 0; i < 90; i++) { const sp = 22 + (i % 5) * 9, x = ((i * 97.3 + Math.sin(time * .7 + i) * 18 + time * (i % 3 - 1) * 6) % (vw + 40) + vw + 40) % (vw + 40) - 20, y = (i * 53.7 + time * sp) % (vh + 20) - 10; g.globalAlpha = .55 + (i % 4) * .12; g.beginPath(); g.arc(x, y, 1.6 + (i % 3) * .9, 0, 6.283); g.fill(); } g.restore(); }
   g.textAlign = 'center'; g.textBaseline = 'middle';
   for (const f of floats) { g.save(); g.globalAlpha = Math.min(1, (1.2 - f.t) * 2.5); g.font = "900 20px 'Trebuchet MS',system-ui,sans-serif"; g.lineWidth = 4; g.strokeStyle = '#2a1d36'; g.strokeText(f.str, f.x, f.y); g.fillStyle = '#fff'; g.fillText(f.str, f.x, f.y); g.restore(); }
 }

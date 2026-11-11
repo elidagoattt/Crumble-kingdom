@@ -19,7 +19,7 @@ let raf = 0, run = null;
 function room(g, event) {
   const img = Art.pic('bg-oven');
   if (img) { g.drawImage(img, 0, 0, W, H); return; }
-  const wall = g.createLinearGradient(0, 0, 0, H); wall.addColorStop(0, event ? '#4b3a8c' : '#ffe2b8'); wall.addColorStop(1, event ? '#7b5cff' : '#ffc98a');
+  const wall = g.createLinearGradient(0, 0, 0, H); wall.addColorStop(0, event ? D.EVENT.colors[1] : '#ffe2b8'); wall.addColorStop(1, event ? D.EVENT.colors[0] : '#ffc98a');
   g.fillStyle = wall; g.fillRect(0, 0, W, H);
   g.save(); g.globalAlpha = event ? .1 : .22; g.fillStyle = '#fff'; for (let x = -20; x < W; x += 64) g.fillRect(x, 0, 32, H); g.restore();
   // shelves with jars on each side
