@@ -8,7 +8,9 @@ import os
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent / 'client'
+# APP=whatif serves the What If? story maker instead of the game (used by the What-if? Render service)
+APP = os.environ.get('APP', '').lower()
+ROOT = Path(__file__).resolve().parent / ('whatif' if APP == 'whatif' else 'client')
 ASSETS = ROOT / 'assets'
 ART_TYPES = {'.png', '.webp', '.jpg', '.jpeg', '.svg', '.mp3'}
 
@@ -58,7 +60,7 @@ class Handler(SimpleHTTPRequestHandler):
 def main():
     port = int(os.environ.get('PORT', '8080'))
     server = ThreadingHTTPServer(('0.0.0.0', port), Handler)
-    print(f'Crumble Kingdom running on port {port}', flush=True)
+    print(f"{'What If? Studio' if APP == 'whatif' else 'Crumble Kingdom'} running on port {port}", flush=True)
     server.serve_forever()
 
 

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#121a33">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>What If? Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="logo">What If<span>?</span> <small>Studio</small></div>
+  <div class="actions">
+    <button type="button" id="play" class="primary">▶ Play</button>
+    <button type="button" id="rec">⬇ Video</button>
+    <button type="button" id="new" aria-label="More">⋯</button>
+    <div id="menu" class="menu" hidden>
+      <button type="button" data-m="blank">New blank video</button>
+      <button type="button" data-m="example">Load the example</button>
+    </div>
+  </div>
+</header>
+<main>
+  <section class="stagewrap">
+    <canvas id="stage" aria-label="Your video"></canvas>
+    <div class="prog"><i id="prog"></i></div>
+    <p id="dlwrap" hidden><a id="dl" class="save">💾 Save video</a></p>
+  </section>
+  <section class="side">
+    <nav id="strip" class="strip" aria-label="Scenes"></nav>
+    <nav class="tabs">
+      <button type="button" data-tab="scene">🎬 Scene</button>
+      <button type="button" data-tab="words">💬 Words</button>
+      <button type="button" data-tab="add">➕ Add</button>
+      <button type="button" data-tab="selected">✋ Selected</button>
+      <button type="button" data-tab="cast">🧑 Cast</button>
+    </nav>
+    <div id="panel" class="panel"></div>
+  </section>
+</main>
+<div id="toast" class="toast" hidden></div>
+<script src="draw.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
