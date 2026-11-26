@@ -6,7 +6,7 @@ html, body { margin: 0; height: 100%; }
 body { background: var(--bg); color: var(--fg); font-family: Fredoka, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
 button, input, select, textarea { font: inherit; color: inherit; }
 header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: calc(10px + env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 10px max(14px, env(safe-area-inset-left)); background: #121a33; border-bottom: 2px solid var(--line); position: sticky; top: 0; z-index: 5; }
-.logo { font-weight: 700; font-size: 24px; letter-spacing: -.01em; }
+.logo { font-weight: 700; font-size: 24px; white-space: nowrap; letter-spacing: -.01em; }
 .logo span { color: var(--accent); }
 .logo small { font-size: 14px; color: var(--muted); font-weight: 500; }
 .actions { display: flex; gap: 8px; position: relative; }
@@ -17,7 +17,7 @@ header { display: flex; align-items: center; justify-content: space-between; gap
 .menu button:hover { background: var(--line); }
 main { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 18px; padding: 16px max(14px, env(safe-area-inset-right)) 30px max(14px, env(safe-area-inset-left)); max-width: 1100px; margin: 0 auto; align-items: start; }
 .stagewrap { position: sticky; top: 76px; }
-#stage { width: 100%; aspect-ratio: 9 / 16; display: block; border-radius: 18px; background: #000; touch-action: none; box-shadow: 0 10px 40px #0008; }
+#stage { width: auto; height: auto; max-width: 100%; max-height: calc(100dvh - 120px); margin: 0 auto; display: block; border-radius: 18px; background: #000; touch-action: none; box-shadow: 0 10px 40px #0008; }
 .prog { height: 5px; background: var(--line); border-radius: 9px; margin-top: 8px; overflow: hidden; }
 .prog i { display: block; height: 100%; width: 0; background: var(--accent); }
 .save { display: block; text-align: center; margin-top: 10px; padding: 12px; border-radius: 14px; background: var(--pink); color: #fff; text-decoration: none; font-weight: 700; }
@@ -57,9 +57,39 @@ main { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); ga
 .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--accent); color: #1a1400; padding: 12px 18px; border-radius: 14px; font-weight: 700; z-index: 10; max-width: 90vw; text-align: center; }
 button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 body.playing .side { opacity: .5; pointer-events: none; }
+body.land main { grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); max-width: 1400px; }
+.lbl { display: block; font-size: 14px; color: var(--muted); margin-bottom: 6px; }
+.row .big { padding: 12px 16px; font-size: 16px; }
+.row .big.on { background: var(--accent); color: #1a1400; }
+.tut { position: fixed; inset: 0; z-index: 20; }
+.tutspot { position: fixed; box-shadow: 0 0 0 9999px rgba(5, 8, 20, .72); border: 3px solid var(--accent); transition: all .3s ease; pointer-events: none; }
+.tutspot.center { border: 0; }
+.tutcard { position: fixed; background: #fffdf5; color: #1d1a2e; border-radius: 22px; padding: 16px; display: grid; grid-template-columns: 76px 1fr; gap: 6px 12px; box-shadow: 0 16px 50px #000a; transition: top .3s ease, left .3s ease; }
+.tutcard canvas { width: 76px; height: 76px; background: #ffe9a8; border-radius: 50%; }
+.tutcard h2 { margin: 2px 0 4px; font-size: 20px; color: #2f2aa0; }
+.tutcard p { margin: 0; line-height: 1.4; font-size: 16px; }
+.tutdots { grid-column: 1 / -1; display: flex; gap: 5px; justify-content: center; margin-top: 6px; }
+.tutdots i { width: 8px; height: 8px; border-radius: 50%; background: #d8d3c4; }
+.tutdots i.on { background: #3f7cf0; width: 20px; border-radius: 9px; }
+.tutbtns { grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; }
+.tutbtns span { flex: 1; }
+.tutbtns button { border: 0; border-radius: 12px; padding: 10px 16px; font-weight: 700; cursor: pointer; background: #e9e4d6; color: #1d1a2e; }
+.tutbtns .primary { background: #3f7cf0; color: #fff; }
+.tutbtns .ghost { background: none; color: #77708a; padding-left: 4px; }
+@media (max-height: 520px) and (orientation: landscape) {
+  header { padding-top: 6px; padding-bottom: 6px; }
+  .logo small { display: none; }
+  main { padding-top: 10px; }
+  #stage { max-height: calc(100dvh - 80px); }
+  .stagewrap { top: 56px; }
+}
 @media (max-width: 760px) {
   main { grid-template-columns: 1fr; }
-  .stagewrap { position: static; max-width: 340px; margin: 0 auto; width: 100%; }
+  .stagewrap { position: static; margin: 0 auto; width: 100%; }
+  body:not(.land) .stagewrap { max-width: 340px; }
+  #stage { max-height: none; }
+  .actions button { padding: 9px 11px; }
+  .logo small { display: none; }
   .castedit { grid-template-columns: 1fr; }
   .castedit canvas { margin: 0 auto; }
 }

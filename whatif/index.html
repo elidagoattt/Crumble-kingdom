@@ -14,6 +14,8 @@
 <header>
   <div class="logo">What If<span>?</span> <small>Studio</small></div>
   <div class="actions">
+    <button type="button" id="music" aria-label="Music on or off">🎵</button>
+    <button type="button" id="help" aria-label="Tutorial">❓</button>
     <button type="button" id="play" class="primary">▶ Play</button>
     <button type="button" id="rec">⬇ Video</button>
     <button type="button" id="new" aria-label="More">⋯</button>
@@ -42,7 +44,17 @@
   </section>
 </main>
 <div id="toast" class="toast" hidden></div>
+<div id="tut" class="tut" hidden>
+  <div id="tutSpot" class="tutspot"></div>
+  <div id="tutCard" class="tutcard" role="dialog" aria-live="polite">
+    <canvas id="tutFace" width="120" height="120" aria-hidden="true"></canvas>
+    <div class="tuttext"><h2 id="tutTitle"></h2><p id="tutBody"></p></div>
+    <div id="tutDots" class="tutdots"></div>
+    <div class="tutbtns"><button type="button" id="tutSkip" class="ghost">Skip</button><span></span><button type="button" id="tutBack">Back</button><button type="button" id="tutNext" class="primary">Next</button></div>
+  </div>
+</div>
 <script src="draw.js"></script>
+<script src="audio.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
